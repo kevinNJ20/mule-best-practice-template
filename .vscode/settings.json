@@ -3,31 +3,13 @@
   // CONFIGURATION OPTIMISÉE MULE DEVELOPMENT
   // ============================================
   
-  // Force l'ouverture des fichiers XML en mode Code par défaut
-  "workbench.editorAssociations": {
-    "*.xml": "default"
-  },
-  
-  // Vue par défaut pour l'éditeur XML Mule (code au lieu de canvas)
-  "mule.xmlEditor.defaultView": "code",
-  
-  // Augmentation de la mémoire Java pour l'extension Mule
-  "mule.javaVmArgs": [
-    "-Xmx1536m",
-    "-Xms256m",
-    "-XX:+UseG1GC"
-  ],
-  
-  // Désactiver les validations lourdes en temps réel
-  "mule.validation.realtime.enabled": false,
-  
-  // Amélioration des performances DataWeave
-  "mule.dataweave.validation.realtime": false,
+  // Ne pas écraser la configuration globale pour editorAssociations
+  // Laisser le comportement par défaut d'Anypoint Code Builder
   
   // Configuration de l'éditeur pour de meilleures performances
-  "files.autoSave": "onFocusChange",
   "editor.formatOnSave": false,
   "editor.formatOnPaste": false,
+  "editor.minimap.enabled": false,
   
   // Exclusions pour améliorer les performances de recherche
   "files.exclude": {
@@ -57,9 +39,6 @@
     "*.yaml": "yaml"
   },
   
-  // Désactiver la minimap pour les gros fichiers XML
-  "editor.minimap.enabled": false,
-  
   // Améliorer les performances de l'éditeur XML
   "xml.validation.enabled": false,
   "xml.format.enabled": true,
@@ -86,5 +65,7 @@
     "editor.tabSize": 2,
     "editor.insertSpaces": true
   },
+  
+  // Analyse Java
   "java.compile.nullAnalysis.mode": "automatic"
 }
