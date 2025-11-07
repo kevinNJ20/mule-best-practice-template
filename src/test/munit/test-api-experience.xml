@@ -24,7 +24,7 @@
         </munit:behavior>
         
         <munit:execution>
-            <flow-ref name="api-health-check-flow" doc:name="Call Health Check Flow"/>
+            <flow-ref name="get:\health:apikit-config" doc:name="Call Health Check Flow"/>
         </munit:execution>
         
         <munit:validation>
@@ -68,7 +68,7 @@
         </munit:behavior>
         
         <munit:execution>
-            <flow-ref name="api-get-customers-flow" doc:name="Call Get Customers Flow"/>
+            <flow-ref name="get:\customers:apikit-config" doc:name="Call Get Customers Flow"/>
         </munit:execution>
         
         <munit:validation>
@@ -114,7 +114,7 @@
                 }]' mediaType="application/json"/>
             </munit:set-event>
             
-            <flow-ref name="api-create-customer-flow" doc:name="Call Create Customer Flow"/>
+            <flow-ref name="post:\customers:application\json:apikit-config" doc:name="Call Create Customer Flow"/>
         </munit:execution>
         
         <munit:validation>
@@ -144,7 +144,7 @@
                 <munit:payload value="#[{}]" mediaType="application/json"/>
             </munit:set-event>
             
-            <flow-ref name="api-create-customer-flow" doc:name="Call Create Customer Flow"/>
+            <flow-ref name="post:\customers:application\json:apikit-config" doc:name="Call Create Customer Flow"/>
         </munit:execution>
     </munit:test>
 

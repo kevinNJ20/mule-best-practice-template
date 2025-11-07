@@ -8,17 +8,17 @@
                           http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
                           http://www.mulesoft.org/schema/mule/munit-tools http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
     
-    <munit:config name="test-hello-world.xml" />
+    <munit:config name="test-health-check.xml" />
     
-    <munit:test name="test-helloWorldFlow" description="Test hello world endpoint">
+    <munit:test name="test-health-endpoint" description="Test health check endpoint">
         <munit:execution>
             <munit:set-event doc:name="Set Event">
                 <munit:payload value="#[{}]" mediaType="application/json"/>
             </munit:set-event>
-            <flow-ref doc:name="Flow-ref to helloWorldFlow" name="helloWorldFlow"/>
+            <flow-ref doc:name="Flow-ref to health endpoint" name="get:\health:apikit-config"/>
         </munit:execution>
         <munit:validation>
-            <munit-tools:assert-that doc:name="Assert payload" expression="#[payload.message]" is="#[MunitTools::equalTo('hello world')]"/>
+            <munit-tools:assert-that doc:name="Assert status is UP" expression="#[payload.status]" is="#[MunitTools::equalTo('UP')]"/>
         </munit:validation>
     </munit:test>
     
