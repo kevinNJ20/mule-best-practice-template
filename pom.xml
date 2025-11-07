@@ -8,6 +8,16 @@
     <packaging>mule-application</packaging>
     
     <name>mule-best-practice-template</name>
+    <description>Template de référence MuleSoft implémentant toutes les best practices pour le développement d'applications Mule</description>
+    
+    <distributionManagement>
+        <repository>
+            <id>anypoint-exchange-v3</id>
+            <name>Anypoint Exchange</name>
+            <url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
+            <layout>default</layout>
+        </repository>
+    </distributionManagement>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -72,6 +82,15 @@
                 <extensions>true</extensions>
                 <configuration>
                     <classifier>mule-application</classifier>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <repositoryId>anypoint-exchange-v3</repositoryId>
+                    <url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
                 </configuration>
             </plugin>
         </plugins>

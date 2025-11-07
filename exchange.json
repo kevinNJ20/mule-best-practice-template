@@ -1,0 +1,34 @@
+{
+  "name": "Mule Best Practice Template",
+  "description": "Template de référence MuleSoft implémentant toutes les best practices pour le développement d'applications Mule : API-led Connectivity, gestion des erreurs, logging standardisé, configuration par environnement, tests MUnit, patterns courants.",
+  "tags": [
+    "best-practices",
+    "template",
+    "reference-architecture",
+    "api-led-connectivity",
+    "munit-tests",
+    "error-handling",
+    "logging",
+    "patterns"
+  ],
+  "categories": [
+    "Templates",
+    "Best Practices"
+  ],
+  "keywords": [
+    "mulesoft",
+    "best-practices",
+    "template",
+    "api-led-connectivity",
+    "munit",
+    "patterns",
+    "reference",
+    "error-handling",
+    "logging",
+    "scatter-gather",
+    "content-based-routing",
+    "batch-processing",
+    "idempotent"
+  ]
+}
+
