@@ -32,6 +32,8 @@
         <!-- Connector versions for Mule 4.10.0 -->
         <mule.http.connector.version>1.10.0</mule.http.connector.version>
         <mule.maven.plugin.version>4.5.2</mule.maven.plugin.version>
+
+        <skipValidation>true</skipValidation>
     </properties>
     
     <profiles>

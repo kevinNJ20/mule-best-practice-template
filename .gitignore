@@ -80,7 +80,12 @@ ehthumbs.db
 node_modules/
 
 # VS Code
-.vscode/
+# Garder settings.json et extensions.json pour partager la config d'équipe
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
 
 # Eclipse
 .settings/

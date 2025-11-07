@@ -1,13 +1,90 @@
 {
-    "files.exclude": {
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
-        "**/.DS_Store": true,
-        "**/Thumbs.db": true,
-        "target": true,
-        ".mule": true
-    },
-    "java.compile.nullAnalysis.mode": "automatic",
-    "java.configuration.updateBuildConfiguration": "interactive"
+  // ============================================
+  // CONFIGURATION OPTIMISÉE MULE DEVELOPMENT
+  // ============================================
+  
+  // Force l'ouverture des fichiers XML en mode Code par défaut
+  "workbench.editorAssociations": {
+    "*.xml": "default"
+  },
+  
+  // Vue par défaut pour l'éditeur XML Mule (code au lieu de canvas)
+  "mule.xmlEditor.defaultView": "code",
+  
+  // Augmentation de la mémoire Java pour l'extension Mule
+  "mule.javaVmArgs": [
+    "-Xmx1536m",
+    "-Xms256m",
+    "-XX:+UseG1GC"
+  ],
+  
+  // Désactiver les validations lourdes en temps réel
+  "mule.validation.realtime.enabled": false,
+  
+  // Amélioration des performances DataWeave
+  "mule.dataweave.validation.realtime": false,
+  
+  // Configuration de l'éditeur pour de meilleures performances
+  "files.autoSave": "onFocusChange",
+  "editor.formatOnSave": false,
+  "editor.formatOnPaste": false,
+  
+  // Exclusions pour améliorer les performances de recherche
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/target": true,
+    "**/.mule": true,
+    "**/.settings": true,
+    "**/.classpath": true,
+    "**/.project": true,
+    ".mule": true
+  },
+  
+  "search.exclude": {
+    "**/target": true,
+    "**/.mule": true,
+    "**/node_modules": true
+  },
+  
+  // Configuration pour les fichiers Mule
+  "files.associations": {
+    "*.raml": "yaml",
+    "*.dwl": "dataweave",
+    "*.yaml": "yaml"
+  },
+  
+  // Désactiver la minimap pour les gros fichiers XML
+  "editor.minimap.enabled": false,
+  
+  // Améliorer les performances de l'éditeur XML
+  "xml.validation.enabled": false,
+  "xml.format.enabled": true,
+  
+  // Configuration du terminal
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  
+  // Paramètres de langue (Français)
+  "files.encoding": "utf8",
+  
+  // Formatage des fichiers
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  },
+  
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  
+  "[json]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "java.compile.nullAnalysis.mode": "automatic"
 }
