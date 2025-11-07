@@ -15,13 +15,6 @@
     <!-- INTERFACE API - APIKIT ROUTER                -->
     <!-- ============================================ -->
 
-    <!-- APIKit Configuration -->
-    <apikit:config name="apikit-config" 
-                   api="api/mule-best-practice-template.raml" 
-                   outboundHeadersMapName="outboundHeaders" 
-                   httpStatusVarName="httpStatus"
-                   doc:name="APIkit Config"/>
-
     <!-- Main Flow: API Interface -->
     <flow name="api-main-flow" doc:name="API Main Flow">
         <http:listener config-ref="HTTP_Listener_config" 

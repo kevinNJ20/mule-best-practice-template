@@ -59,6 +59,45 @@
     </profiles>
     
     <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Configuration pour Eclipse/Anypoint Studio -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.mule.tools.maven</groupId>
+                                        <artifactId>mule-maven-plugin</artifactId>
+                                        <versionRange>[4.0.0,)</versionRange>
+                                        <goals>
+                                            <goal>validate</goal>
+                                            <goal>initialize</goal>
+                                            <goal>generate-sources</goal>
+                                            <goal>process-sources</goal>
+                                            <goal>process-resources</goal>
+                                            <goal>compile</goal>
+                                            <goal>process-classes</goal>
+                                            <goal>generate-test-sources</goal>
+                                            <goal>generate-test-resources</goal>
+                                            <goal>test-compile</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore/>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
