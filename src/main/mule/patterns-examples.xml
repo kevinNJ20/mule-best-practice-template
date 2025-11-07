@@ -16,11 +16,6 @@
     <!-- PATTERN 1: Scatter-Gather Pattern -->
     <!-- Appelle plusieurs services en parallèle et agrège les résultats -->
     <flow name="pattern-scatter-gather-flow" doc:name="Pattern: Scatter-Gather">
-        <http:listener config-ref="HTTP_Listener_config" path="${api.basePath}/patterns/scatter-gather" doc:name="GET /scatter-gather"/>
-        
-        <flow-ref name="save-start-time-subflow" doc:name="Save Start Time"/>
-        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
-        <flow-ref name="log-request-start-subflow" doc:name="Log Request Start"/>
         
         <scatter-gather doc:name="Scatter-Gather" timeout="30000">
             <!-- Route 1: Récupérer les informations client -->
@@ -106,12 +101,6 @@ output application/json
     <!-- PATTERN 2: Content-Based Routing Pattern -->
     <!-- Route les messages selon leur contenu -->
     <flow name="pattern-content-based-routing-flow" doc:name="Pattern: Content-Based Routing">
-        <http:listener config-ref="HTTP_Listener_config" path="${api.basePath}/patterns/route-message" doc:name="POST /route-message"
-                      allowedMethods="POST"/>
-        
-        <flow-ref name="save-start-time-subflow" doc:name="Save Start Time"/>
-        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
-        <flow-ref name="log-request-start-subflow" doc:name="Log Request Start"/>
         
         <choice doc:name="Route Based on Type">
             <!-- Route pour les paiements -->
@@ -216,12 +205,6 @@ output application/json
     <!-- PATTERN 3: Idempotent Message Filter -->
     <!-- Évite le traitement en double des messages -->
     <flow name="pattern-idempotent-filter-flow" doc:name="Pattern: Idempotent Filter">
-        <http:listener config-ref="HTTP_Listener_config" path="${api.basePath}/patterns/idempotent" doc:name="POST /idempotent"
-                      allowedMethods="POST"/>
-        
-        <flow-ref name="save-start-time-subflow" doc:name="Save Start Time"/>
-        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
-        <flow-ref name="log-request-start-subflow" doc:name="Log Request Start"/>
         
         <!-- Vérification si le message a déjà été traité -->
         <ee:transform doc:name="Check Message ID">
@@ -283,21 +266,11 @@ output application/json
                         message="#['[IDEMPOTENT] Saving message ID ' ++ vars.messageId ++ ' to prevent duplicates']"/>
             </otherwise>
         </choice>
-        
-        <flow-ref name="log-request-end-subflow" doc:name="Log Request End"/>
-        
-        <error-handler ref="global-api-error-handler" doc:name="Global Error Handler"/>
     </flow>
 
     <!-- PATTERN 4: Batch Processing Pattern -->
     <!-- Traite les données par lots -->
     <flow name="pattern-batch-processing-flow" doc:name="Pattern: Batch Processing">
-        <http:listener config-ref="HTTP_Listener_config" path="${api.basePath}/patterns/batch" doc:name="POST /batch"
-                      allowedMethods="POST"/>
-        
-        <flow-ref name="save-start-time-subflow" doc:name="Save Start Time"/>
-        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
-        <flow-ref name="log-request-start-subflow" doc:name="Log Request Start"/>
         
         <ee:transform doc:name="Split into Batches">
             <ee:message>
@@ -354,10 +327,6 @@ output application/json
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
-        
-        <flow-ref name="log-request-end-subflow" doc:name="Log Request End"/>
-        
-        <error-handler ref="global-api-error-handler" doc:name="Global Error Handler"/>
     </flow>
 
 </mule>

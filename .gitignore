@@ -103,3 +103,5 @@ logs/
 # Build artifacts
 dist/
 build/
+
+.tooling-project

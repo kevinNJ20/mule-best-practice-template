@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!-- ============================================ -->
+    <!-- INTERFACE API - APIKIT ROUTER                -->
+    <!-- ============================================ -->
+
+    <!-- APIKit Configuration -->
+    <apikit:config name="apikit-config" 
+                   api="api/mule-best-practice-template.raml" 
+                   outboundHeadersMapName="outboundHeaders" 
+                   httpStatusVarName="httpStatus"
+                   doc:name="APIkit Config"/>
+
+    <!-- Main Flow: API Interface -->
+    <flow name="api-main-flow" doc:name="API Main Flow">
+        <http:listener config-ref="HTTP_Listener_config" 
+                      path="/api/*" 
+                      doc:name="HTTP Listener">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        
+        <flow-ref name="save-start-time-subflow" doc:name="Save Start Time"/>
+        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
+        <flow-ref name="log-request-start-subflow" doc:name="Log Request Start"/>
+        
+        <!-- APIkit Router -->
+        <apikit:router config-ref="apikit-config" doc:name="APIkit Router"/>
+        
+        <flow-ref name="log-request-end-subflow" doc:name="Log Request End"/>
+        
+        <error-handler ref="global-api-error-handler" doc:name="Global Error Handler"/>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- APIKIT FLOWS - IMPLEMENTATION                -->
+    <!-- ============================================ -->
+
+    <!-- GET /health -->
+    <flow name="get:\health:apikit-config" doc:name="GET /health">
+        <logger level="INFO" doc:name="Log Health Check" message="[API] Health check requested"/>
+        
+        <ee:transform doc:name="Health Check Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    status: "UP",
+    timestamp: now(),
+    application: {
+        name: Mule::p('api.name'),
+        version: Mule::p('api.version'),
+        environment: Mule::p('env')
+    },
+    correlationId: vars.correlationId default "N/A"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+
+    <!-- GET /customers -->
+    <flow name="get:\customers:apikit-config" doc:name="GET /customers">
+        <logger level="INFO" doc:name="Log Get Customers" message="[API] Get customers requested"/>
+        
+        <!-- Appel à la couche Process -->
+        <flow-ref name="process-get-customers-flow" doc:name="Call Process Layer"/>
+        
+        <!-- Transformation pour l'expérience client -->
+        <ee:transform doc:name="Transform to API Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    customers: payload map ((customer, index) -> {
+        id: customer.customerId,
+        fullName: customer.firstName ++ " " ++ customer.lastName,
+        email: customer.emailAddress,
+        phone: customer.phoneNumber,
+        registrationDate: customer.createdAt
+    }),
+    totalCount: sizeOf(payload),
+    correlationId: vars.correlationId default "N/A",
+    timestamp: now()
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+
+    <!-- POST /customers -->
+    <flow name="post:\customers:application\json:apikit-config" doc:name="POST /customers">
+        <logger level="INFO" doc:name="Log Create Customer" message="[API] Create customer requested"/>
+        
+        <!-- Validation de l'input -->
+        <flow-ref name="validate-input-subflow" doc:name="Validate Input"/>
+        
+        <!-- Appel à la couche Process -->
+        <flow-ref name="process-create-customer-flow" doc:name="Call Process Layer"/>
+        
+        <!-- Préparation de la réponse -->
+        <set-variable variableName="httpStatus" value="201" doc:name="Set HTTP Status 201"/>
+        <ee:transform doc:name="Create Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    message: "Client créé avec succès",
+    customerId: payload.id,
+    correlationId: vars.correlationId default "N/A",
+    timestamp: now()
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="customerId"><![CDATA[%dw 2.0
+output application/java
+---
+payload.id]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        
+        <!-- Add Location header -->
+        <set-variable variableName="outboundHeaders" 
+                     value="#[{'Location': '${api.basePath}/customers/' ++ vars.customerId}]" 
+                     doc:name="Set Location Header"/>
+    </flow>
+
+    <!-- GET /patterns/scatter-gather -->
+    <flow name="get:\patterns\scatter-gather:apikit-config" doc:name="GET /patterns/scatter-gather">
+        <logger level="INFO" doc:name="Log Scatter-Gather" message="[API] Scatter-Gather pattern requested"/>
+        <flow-ref name="pattern-scatter-gather-flow" doc:name="Call Scatter-Gather Pattern"/>
+    </flow>
+
+    <!-- POST /patterns/route-message -->
+    <flow name="post:\patterns\route-message:application\json:apikit-config" doc:name="POST /patterns/route-message">
+        <logger level="INFO" doc:name="Log Content Routing" message="[API] Content-Based Routing pattern requested"/>
+        <flow-ref name="pattern-content-based-routing-flow" doc:name="Call Content-Based Routing"/>
+    </flow>
+
+    <!-- POST /patterns/idempotent -->
+    <flow name="post:\patterns\idempotent:application\json:apikit-config" doc:name="POST /patterns/idempotent">
+        <logger level="INFO" doc:name="Log Idempotent" message="[API] Idempotent pattern requested"/>
+        <flow-ref name="pattern-idempotent-filter-flow" doc:name="Call Idempotent Pattern"/>
+    </flow>
+
+    <!-- POST /patterns/batch -->
+    <flow name="post:\patterns\batch:application\json:apikit-config" doc:name="POST /patterns/batch">
+        <logger level="INFO" doc:name="Log Batch" message="[API] Batch processing pattern requested"/>
+        <flow-ref name="pattern-batch-processing-flow" doc:name="Call Batch Pattern"/>
+    </flow>
+
+    <!-- ============================================ -->
+    <!-- APIKIT ERROR HANDLERS                        -->
+    <!-- ============================================ -->
+
+    <!-- APIkit Console Flow -->
+    <flow name="api-console-flow" doc:name="APIkit Console Flow">
+        <http:listener config-ref="HTTP_Listener_config" path="/console/*" doc:name="HTTP Console Listener">
+            <http:response statusCode="#[vars.httpStatus default 200]"/>
+        </http:listener>
+        <apikit:console config-ref="apikit-config" doc:name="APIkit Console"/>
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Console Not Found">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": {
+        "code": "NOT_FOUND",
+        "message": "Console APIkit non disponible",
+        "timestamp": now()
+    }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+
+</mule>
+

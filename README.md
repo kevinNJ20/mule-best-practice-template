@@ -8,7 +8,9 @@ Ce projet sert de template de référence pour le développement d'applications 
 
 ### ✨ Fonctionnalités
 
+- ✅ **APIkit Router** avec spécification RAML complète
 - ✅ **Architecture API-led Connectivity** (Experience, Process, System)
+- ✅ **Console APIkit** pour tester l'API
 - ✅ **Gestion globale des erreurs** avec codes standardisés
 - ✅ **Logging standardisé** et traçabilité (Correlation ID)
 - ✅ **Configuration par environnement** (local, dev, prod)
@@ -43,6 +45,8 @@ mvn mule:run -Plocal
 
 L'application démarre sur `http://localhost:8082`
 
+**Console APIkit** : `http://localhost:8082/console` (pour tester l'API)
+
 ---
 
 ## 🏗️ Architecture
@@ -70,21 +74,24 @@ L'application démarre sur `http://localhost:8082`
 
 ```
 mule-best-practice-template/
-├── src/main/mule/
-│   ├── global.xml                    # Configuration globale
-│   ├── error-handlers.xml            # Gestion des erreurs
-│   ├── common-flows.xml              # Sub-flows réutilisables
-│   ├── api-layer-experience.xml      # Couche Experience
-│   ├── api-layer-process.xml         # Couche Process
-│   ├── api-layer-system.xml          # Couche System
-│   └── patterns-examples.xml         # Patterns MuleSoft
-├── src/main/resources/
-│   ├── config.local.yaml             # Config locale
-│   ├── config.dev.yaml               # Config dev
-│   ├── config.prod.yaml              # Config production
-│   └── log4j2.xml
+├── src/main/
+│   ├── mule/
+│   │   ├── global.xml                # Configuration globale
+│   │   ├── interface.xml             # APIkit Router & Interface API
+│   │   ├── error-handlers.xml        # Gestion des erreurs
+│   │   ├── common-flows.xml          # Sub-flows réutilisables
+│   │   ├── api-layer-process.xml     # Couche Process
+│   │   ├── api-layer-system.xml      # Couche System
+│   │   └── patterns-examples.xml     # Patterns MuleSoft
+│   └── resources/
+│       ├── api/
+│       │   ├── mule-best-practice-template.raml  # Spec RAML
+│       │   └── exchange.json         # Métadonnées Exchange
+│       ├── config.local.yaml         # Config locale
+│       ├── config.dev.yaml           # Config dev
+│       ├── config.prod.yaml          # Config production
+│       └── log4j2.xml
 ├── src/test/munit/
-│   ├── test-api-experience.xml
 │   ├── test-api-process.xml
 │   └── test-common-flows.xml
 └── pom.xml
@@ -143,46 +150,61 @@ security:
 
 ## 🚀 Utilisation
 
+### 🎨 Console APIkit
+
+Accédez à la console interactive : **`http://localhost:8082/console`**
+
+La console permet de :
+- Visualiser la documentation API complète
+- Tester tous les endpoints interactivement
+- Voir les exemples de requêtes/réponses
+- Valider les payloads selon le RAML
+
 ### Endpoints disponibles
 
-#### API Experience Layer
+**Console APIkit** : `http://localhost:8082/console` 
+- Interface interactive pour tester l'API
+- Documentation auto-générée depuis le RAML
+- Exemples de requêtes/réponses
+
+#### API Endpoints
+
 ```bash
 # Health Check
-curl http://localhost:8082/api/v1/health
+GET http://localhost:8082/api/v1/health
 
 # Get Customers
-curl http://localhost:8082/api/v1/customers
+GET http://localhost:8082/api/v1/customers
 
 # Create Customer
-curl -X POST http://localhost:8082/api/v1/customers \
-  -H "Content-Type: application/json" \
-  -d '{
-    "firstName": "Marie",
-    "lastName": "Dupont",
-    "email": "marie.dupont@example.com",
-    "phone": "+33612345678"
-  }'
+POST http://localhost:8082/api/v1/customers
+Content-Type: application/json
+
+{
+  "firstName": "Marie",
+  "lastName": "Dupont",
+  "email": "marie.dupont@example.com",
+  "phone": "+33612345678"
+}
 ```
 
 #### Patterns Examples
+
 ```bash
-# Scatter-Gather Pattern (appels parallèles)
-curl http://localhost:8082/api/v1/patterns/scatter-gather
+# Scatter-Gather (appels parallèles)
+GET http://localhost:8082/api/v1/patterns/scatter-gather
 
 # Content-Based Routing
-curl -X POST http://localhost:8082/api/v1/patterns/route-message \
-  -H "Content-Type: application/json" \
-  -d '{"type": "PAYMENT", "amount": 150.50}'
+POST http://localhost:8082/api/v1/patterns/route-message
+{"type": "PAYMENT", "amount": 150.50, "currency": "EUR"}
 
 # Idempotent Filter
-curl -X POST http://localhost:8082/api/v1/patterns/idempotent \
-  -H "Content-Type: application/json" \
-  -d '{"messageId": "MSG-001", "data": "test"}'
+POST http://localhost:8082/api/v1/patterns/idempotent
+{"messageId": "MSG-001", "data": "test"}
 
 # Batch Processing
-curl -X POST http://localhost:8082/api/v1/patterns/batch \
-  -H "Content-Type: application/json" \
-  -d '{"items": [{"id": 1}, {"id": 2}]}'
+POST http://localhost:8082/api/v1/patterns/batch
+{"items": [{"id": 1}, {"id": 2}]}
 ```
 
 ---
@@ -346,6 +368,26 @@ Traite les données par **lots** pour optimiser les performances.
     <classifier>mule-plugin</classifier>
 </dependency>
 ```
+
+---
+
+## 📤 Publication sur Exchange
+
+### Via Anypoint Platform (Recommandé)
+
+1. Aller sur https://anypoint.mulesoft.com → Exchange
+2. Cliquer "Publish new asset" → Type : "Mule Application"
+3. Uploader : `target/mule-best-practice-template-1.0.0-mule-application.jar`
+4. Remplir : nom, description, tags
+5. Publier
+
+### Via Maven
+
+```bash
+mvn clean deploy -DskipTests
+```
+
+*Nécessite `distributionManagement` dans pom.xml et credentials dans `~/.m2/settings.xml`*
 
 ---
 

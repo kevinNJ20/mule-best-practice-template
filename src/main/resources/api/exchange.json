@@ -1,6 +1,8 @@
 {
-  "name": "Mule Best Practice Template",
-  "description": "Template de référence MuleSoft implémentant toutes les best practices pour le développement d'applications Mule : API-led Connectivity, gestion des erreurs, logging standardisé, configuration par environnement, tests MUnit, patterns courants.",
+  "main": "mule-best-practice-template.raml",
+  "name": "Mule Best Practice Template API",
+  "version": "1.0.0",
+  "classifier": "raml",
   "tags": [
     "best-practices",
     "template",
@@ -13,7 +15,8 @@
   ],
   "categories": [
     "Templates",
-    "Best Practices"
+    "Best Practices",
+    "Reference Architecture"
   ],
   "keywords": [
     "mulesoft",
@@ -25,10 +28,12 @@
     "reference",
     "error-handling",
     "logging",
+    "correlation-id",
     "scatter-gather",
     "content-based-routing",
     "batch-processing",
-    "idempotent"
-  ]
+    "idempotent-filter"
+  ],
+  "contactName": "Kevin J. N.",
+  "contactEmail": "kevin@jasmineconseil.com"
 }
-
