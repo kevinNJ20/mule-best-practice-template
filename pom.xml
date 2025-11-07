@@ -77,6 +77,7 @@
         </plugins>
     </build>
     <dependencies>
+        <!-- Mule Core Dependencies -->
         <dependency>
             <groupId>org.mule.connectors</groupId>
             <artifactId>mule-http-connector</artifactId>
@@ -103,6 +104,12 @@
             <artifactId>munit-tools</artifactId>
             <version>3.2.0</version>
             <classifier>mule-plugin</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mule.weave</groupId>
+            <artifactId>assertions</artifactId>
+            <version>1.2.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

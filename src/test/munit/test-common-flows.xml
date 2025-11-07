@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+      xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+        http://www.mulesoft.org/schema/mule/munit-tools http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+
+    <!-- ============================================ -->
+    <!-- MUNIT TESTS - COMMON FLOWS                  -->
+    <!-- ============================================ -->
+
+    <munit:config name="test-common-flows.xml" doc:name="MUnit Configuration"/>
+
+    <!-- Test: Generate Correlation ID -->
+    <munit:test name="test-generate-correlation-id-new" 
+                description="Test correlation ID generation when not present" 
+                doc:name="Test Generate New Correlation ID">
+        <munit:execution>
+            <flow-ref name="generate-correlation-id-subflow" doc:name="Call Generate Correlation ID"/>
+        </munit:execution>
+        
+        <munit:validation>
+            <munit-tools:assert-that doc:name="Assert Correlation ID Created" 
+                                    expression="#[vars.correlationId]" 
+                                    is="#[MunitTools::notNullValue()]"/>
+        </munit:validation>
+    </munit:test>
+
+    <!-- Test: Generate Correlation ID - Preserve Existing -->
+    <munit:test name="test-generate-correlation-id-preserve" 
+                description="Test correlation ID is preserved when already present" 
+                doc:name="Test Preserve Existing Correlation ID">
+        <munit:behavior>
+            <set-variable variableName="correlationId" value="EXISTING-CORR-123" doc:name="Set Existing Correlation ID"/>
+        </munit:behavior>
+        
+        <munit:execution>
+            <flow-ref name="generate-correlation-id-subflow" doc:name="Call Generate Correlation ID"/>
+        </munit:execution>
+        
+        <munit:validation>
+            <munit-tools:assert-that doc:name="Assert Correlation ID Preserved" 
+                                    expression="#[vars.correlationId]" 
+                                    is="#[MunitTools::equalTo('EXISTING-CORR-123')]"/>
+        </munit:validation>
+    </munit:test>
+
+    <!-- Test: Validate Input - Valid -->
+    <munit:test name="test-validate-input-valid" 
+                description="Test input validation passes for valid payload" 
+                doc:name="Test Validate Input Valid">
+        <munit:behavior>
+            <set-variable variableName="correlationId" value="TEST-CORR-010" doc:name="Set Test Correlation ID"/>
+        </munit:behavior>
+        
+        <munit:execution>
+            <munit:set-event doc:name="Set Valid Event">
+                <munit:payload value='#[{"name": "Test", "value": "123"}]' mediaType="application/json"/>
+            </munit:set-event>
+            
+            <flow-ref name="validate-input-subflow" doc:name="Call Validate Input"/>
+        </munit:execution>
+        
+        <munit:validation>
+            <munit-tools:assert-that doc:name="Assert Payload Unchanged" 
+                                    expression="#[payload.name]" 
+                                    is="#[MunitTools::equalTo('Test')]"/>
+        </munit:validation>
+    </munit:test>
+
+    <!-- Test: Validate Input - Invalid -->
+    <munit:test name="test-validate-input-invalid" 
+                description="Test input validation fails for empty payload" 
+                doc:name="Test Validate Input Invalid"
+                expectedErrorType="VALIDATION:INVALID_INPUT">
+        <munit:behavior>
+            <set-variable variableName="correlationId" value="TEST-CORR-011" doc:name="Set Test Correlation ID"/>
+        </munit:behavior>
+        
+        <munit:execution>
+            <munit:set-event doc:name="Set Empty Event">
+                <munit:payload value="#[{}]" mediaType="application/json"/>
+            </munit:set-event>
+            
+            <flow-ref name="validate-input-subflow" doc:name="Call Validate Input"/>
+        </munit:execution>
+    </munit:test>
+
+    <!-- Test: Enrich Response -->
+    <munit:test name="test-enrich-response" 
+                description="Test response enrichment with metadata" 
+                doc:name="Test Enrich Response">
+        <munit:behavior>
+            <set-variable variableName="correlationId" value="TEST-CORR-012" doc:name="Set Test Correlation ID"/>
+        </munit:behavior>
+        
+        <munit:execution>
+            <munit:set-event doc:name="Set Event">
+                <munit:payload value='#[{"result": "success"}]' mediaType="application/json"/>
+            </munit:set-event>
+            
+            <flow-ref name="enrich-response-subflow" doc:name="Call Enrich Response"/>
+        </munit:execution>
+        
+        <munit:validation>
+            <munit-tools:assert-that doc:name="Assert Data Preserved" 
+                                    expression="#[payload.data.result]" 
+                                    is="#[MunitTools::equalTo('success')]"/>
+            <munit-tools:assert-that doc:name="Assert Metadata Exists" 
+                                    expression="#[payload.metadata]" 
+                                    is="#[MunitTools::notNullValue()]"/>
+            <munit-tools:assert-that doc:name="Assert Correlation ID in Metadata" 
+                                    expression="#[payload.metadata.correlationId]" 
+                                    is="#[MunitTools::equalTo('TEST-CORR-012')]"/>
+        </munit:validation>
+    </munit:test>
+
+</mule>
+

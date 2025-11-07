@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+      xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+        http://www.mulesoft.org/schema/mule/munit-tools http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!-- ============================================ -->
+    <!-- MUNIT TESTS - EXPERIENCE LAYER              -->
+    <!-- ============================================ -->
+
+    <munit:config name="test-api-experience.xml" doc:name="MUnit Configuration"/>
+
+    <!-- Test: Health Check Endpoint -->
+    <munit:test name="test-api-health-check-success" description="Test health check returns 200 OK" doc:name="Test Health Check">
+        <munit:behavior>
+            <set-variable variableName="correlationId" value="TEST-CORR-001" doc:name="Set Test Correlation ID"/>
+        </munit:behavior>
+        
+        <munit:execution>
+            <flow-ref name="api-health-check-flow" doc:name="Call Health Check Flow"/>
+        </munit:execution>
+        
+        <munit:validation>
+            <munit-tools:assert-that doc:name="Assert Status" 
+                                    expression="#[payload.status]" 
+                                    is="#[MunitTools::equalTo('UP')]"/>
+            <munit-tools:assert-that doc:name="Assert Application Name" 
+                                    expression="#[payload.application.name]" 
+                                    is="#[MunitTools::notNullValue()]"/>
+            <munit-tools:assert-that doc:name="Assert Correlation ID" 
+                                    expression="#[payload.correlationId]" 
+                                    is="#[MunitTools::notNullValue()]"/>
+        </munit:validation>
+    </munit:test>
+
+    <!-- Test: Get Customers Success -->
+    <munit:test name="test-api-get-customers-success" description="Test get customers returns list" doc:name="Test Get Customers Success">
+        <munit:behavior>
+            <set-variable variableName="correlationId" value="TEST-CORR-002" doc:name="Set Test Correlation ID"/>
+            
+            <!-- Mock du flow process -->
+            <munit-tools:mock-when doc:name="Mock Process Layer" processor="flow-ref">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="process-get-customers-flow" attributeName="name"/>
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload value='#[
+                    [{
+                        "customerId": "CUST-001",
+                        "firstName": "Test",
+                        "lastName": "User",
+                        "emailAddress": "test@example.com",
+                        "phoneNumber": "+33612345678",
+                        "createdAt": "2023-01-15T10:30:00Z",
+                        "status": "ACTIVE",
+                        "accountAge": 300
+                    }]
+                    ]' mediaType="application/json"/>
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        
+        <munit:execution>
+            <flow-ref name="api-get-customers-flow" doc:name="Call Get Customers Flow"/>
+        </munit:execution>
+        
+        <munit:validation>
+            <munit-tools:assert-that doc:name="Assert Customers Array Exists" 
+                                    expression="#[payload.customers]" 
+                                    is="#[MunitTools::notNullValue()]"/>
+            <munit-tools:assert-that doc:name="Assert Total Count" 
+                                    expression="#[payload.totalCount]" 
+                                    is="#[MunitTools::greaterThan(0)]"/>
+            <munit-tools:assert-that doc:name="Assert Customer Full Name" 
+                                    expression="#[payload.customers[0].fullName]" 
+                                    is="#[MunitTools::equalTo('Test User')]"/>
+        </munit:validation>
+    </munit:test>
+
+    <!-- Test: Create Customer Success -->
+    <munit:test name="test-api-create-customer-success" description="Test create customer returns 201" doc:name="Test Create Customer Success">
+        <munit:behavior>
+            <set-variable variableName="correlationId" value="TEST-CORR-003" doc:name="Set Test Correlation ID"/>
+            
+            <munit-tools:mock-when doc:name="Mock Process Layer" processor="flow-ref">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="process-create-customer-flow" attributeName="name"/>
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload value='#[{
+                        "id": "123e4567-e89b-12d3-a456-426614174000",
+                        "customerId": "CUST-999",
+                        "firstName": "New",
+                        "lastName": "Customer"
+                    }]' mediaType="application/json"/>
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        
+        <munit:execution>
+            <munit:set-event doc:name="Set Event">
+                <munit:payload value='#[{
+                    "firstName": "New",
+                    "lastName": "Customer",
+                    "email": "new.customer@example.com",
+                    "phone": "+33612345678"
+                }]' mediaType="application/json"/>
+            </munit:set-event>
+            
+            <flow-ref name="api-create-customer-flow" doc:name="Call Create Customer Flow"/>
+        </munit:execution>
+        
+        <munit:validation>
+            <munit-tools:assert-that doc:name="Assert HTTP Status 201" 
+                                    expression="#[vars.httpStatus]" 
+                                    is="#[MunitTools::equalTo(201)]"/>
+            <munit-tools:assert-that doc:name="Assert Customer ID" 
+                                    expression="#[payload.customerId]" 
+                                    is="#[MunitTools::notNullValue()]"/>
+            <munit-tools:assert-that doc:name="Assert Success Message" 
+                                    expression="#[payload.message]" 
+                                    is="#[MunitTools::containsString('succès')]"/>
+        </munit:validation>
+    </munit:test>
+
+    <!-- Test: Create Customer with Invalid Input -->
+    <munit:test name="test-api-create-customer-invalid-input" 
+                description="Test create customer with empty payload raises error" 
+                doc:name="Test Create Customer Invalid Input"
+                expectedErrorType="VALIDATION:INVALID_INPUT">
+        <munit:behavior>
+            <set-variable variableName="correlationId" value="TEST-CORR-004" doc:name="Set Test Correlation ID"/>
+        </munit:behavior>
+        
+        <munit:execution>
+            <munit:set-event doc:name="Set Empty Event">
+                <munit:payload value="#[{}]" mediaType="application/json"/>
+            </munit:set-event>
+            
+            <flow-ref name="api-create-customer-flow" doc:name="Call Create Customer Flow"/>
+        </munit:execution>
+    </munit:test>
+
+</mule>
+

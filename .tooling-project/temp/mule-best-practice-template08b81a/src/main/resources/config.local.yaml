@@ -1,0 +1,7 @@
+# HTTP Listener Configuration
+http:
+  # Host address for the HTTP listener
+  host: "localhost"
+  # Port number for the HTTP listener
+  port: "8082"
+
