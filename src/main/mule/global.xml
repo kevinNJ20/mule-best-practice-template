@@ -14,7 +14,7 @@
     <!-- ============================================ -->
     
     <!-- Configuration de l'environnement -->
-    <global-property doc:name="Environment Property" name="env" value="${mule.env}"/>
+    <global-property doc:name="Environment Property" name="env" value="${mule.env:prod}"/>
     
     <!-- Chargement du fichier de configuration basé sur l'environnement -->
     <configuration-properties doc:name="Configuration Properties" file="config.${env}.yaml"/>
