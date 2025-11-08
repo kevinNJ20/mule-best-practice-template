@@ -102,21 +102,21 @@ output application/json
         
         <choice doc:name="Route Based on Type">
             <!-- Route pour les paiements -->
-            <when expression="#[payload.type == 'PAYMENT']">
+            <when expression="#[payload.'type' == 'PAYMENT']">
                 <logger level="INFO" doc:name="Log Payment Route"
                         message="#['[ROUTING] CorrelationId: ' ++ vars.correlationId ++ ' | Routing to payment processor']"/>
                 <flow-ref name="pattern-process-payment-subflow" doc:name="Process Payment"/>
             </when>
             
             <!-- Route pour les remboursements -->
-            <when expression="#[payload.type == 'REFUND']">
+            <when expression="#[payload.'type' == 'REFUND']">
                 <logger level="INFO" doc:name="Log Refund Route"
                         message="#['[ROUTING] CorrelationId: ' ++ vars.correlationId ++ ' | Routing to refund processor']"/>
                 <flow-ref name="pattern-process-refund-subflow" doc:name="Process Refund"/>
             </when>
             
             <!-- Route pour les virements -->
-            <when expression="#[payload.type == 'TRANSFER']">
+            <when expression="#[payload.'type' == 'TRANSFER']">
                 <logger level="INFO" doc:name="Log Transfer Route"
                         message="#['[ROUTING] CorrelationId: ' ++ vars.correlationId ++ ' | Routing to transfer processor']"/>
                 <flow-ref name="pattern-process-transfer-subflow" doc:name="Process Transfer"/>
@@ -133,7 +133,7 @@ output application/json
 ---
 {
     status: "UNKNOWN_TYPE",
-    message: "Type de transaction inconnu: " ++ payload.type,
+    message: "Type de transaction inconnu: " ++ payload.'type',
     correlationId: vars.correlationId
 }]]></ee:set-payload>
                     </ee:message>

@@ -12,11 +12,9 @@
     <!-- ============================================ -->
     <!-- CONFIGURATION GLOBALE - BEST PRACTICES       -->
     <!-- ============================================ -->
-    
-    <!-- Configuration de l'environnement -->
-    <global-property doc:name="Environment Property" name="env" value="${mule.env:prod}"/>
-    
-    <!-- Chargement du fichier de configuration basé sur l'environnement -->
+    <global-property doc:name="Environment Property" name="env" value="local"/>
+    <!-- Chargement du fichier de configuration pour l'environnement local -->
+    <!-- Pour d'autres environnements, modifier cette ligne : config.dev.yaml ou config.prod.yaml -->
     <configuration-properties doc:name="Configuration Properties" file="config.${env}.yaml"/>
     
     <!-- ============================================ -->

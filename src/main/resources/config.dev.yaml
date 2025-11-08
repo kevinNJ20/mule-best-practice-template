@@ -1,5 +1,8 @@
 # Configuration pour l'environnement DEVELOPMENT
 
+# Environment
+env: "dev"
+
 # HTTP Listener Configuration
 http:
   host: "0.0.0.0"
@@ -35,7 +38,7 @@ security:
 # Logging
 logging:
   level: "DEBUG"
-  correlationIdEnabled: true
+  correlationIdEnabled: "true"
 
 # Business Configuration
 business:

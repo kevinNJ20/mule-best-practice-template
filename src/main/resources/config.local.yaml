@@ -1,5 +1,8 @@
 # Configuration pour l'environnement LOCAL
 
+# Environment
+env: "local"
+
 # HTTP Listener Configuration
 http:
   host: "localhost"
@@ -35,7 +38,7 @@ security:
 # Logging
 logging:
   level: "DEBUG"
-  correlationIdEnabled: true
+  correlationIdEnabled: "true"
 
 # Business Configuration
 business:

@@ -47,6 +47,8 @@ L'application démarre sur `http://localhost:8082`
 
 **Console APIkit** : `http://localhost:8082/console` (pour tester l'API)
 
+> **Note** : Au premier déploiement, assurez-vous que le domaine Mule "default" existe. Le script de déploiement le créera automatiquement si nécessaire.
+
 ---
 
 ## 🏗️ Architecture
@@ -103,15 +105,17 @@ mule-best-practice-template/
 
 ### Sélection de l'environnement
 
-```bash
-# Via Maven profiles
-mvn clean install -Plocal    # Local
-mvn clean install -Pdev      # Développement
-mvn clean install -Pprod     # Production
+La configuration de l'environnement se fait via la propriété `env` dans `global.xml` :
 
-# Via variable d'environnement
-export MULE_ENV=dev
+```xml
+<global-property doc:name="Environment Property" name="env" value="local"/>
 ```
+
+**Modifier l'environnement** :
+- Pour **dev** : changer `value="local"` par `value="dev"`
+- Pour **prod** : changer `value="local"` par `value="prod"`
+
+Le fichier correspondant (`config.local.yaml`, `config.dev.yaml` ou `config.prod.yaml`) sera automatiquement chargé.
 
 ### Fichiers de configuration
 
@@ -119,24 +123,40 @@ Chaque environnement a son propre fichier YAML :
 
 ```yaml
 # config.local.yaml
+# Environment
+env: "local"
+
+# HTTP Listener Configuration
 http:
   host: "localhost"
   port: "8082"
 
+# Database Configuration
 db:
   host: "localhost"
   port: "5432"
+  database: "local_db"
+  user: "local_user"
+  password: "local_password"
 
+# API Configuration
 api:
+  name: "Mule Best Practice API"
+  version: "v1"
   basePath: "/api/v1"
 
+# Logging
 logging:
   level: "DEBUG"
+  correlationIdEnabled: "true"
 
+# Business Configuration
 business:
   maxTransactionAmount: "1000"
   batchSize: "5"
 ```
+
+> **Important** : Toutes les valeurs YAML doivent être des chaînes de caractères (entre guillemets). Les booléens et nombres doivent aussi être en chaînes : `"true"`, `"5"`, etc.
 
 **Secrets en production** : Utiliser Secure Properties
 ```yaml
@@ -171,13 +191,13 @@ La console permet de :
 
 ```bash
 # Health Check
-GET http://localhost:8082/api/v1/health
+GET http://localhost:8082/api/health
 
 # Get Customers
-GET http://localhost:8082/api/v1/customers
+GET http://localhost:8082/api/customers
 
 # Create Customer
-POST http://localhost:8082/api/v1/customers
+POST http://localhost:8082/api/customers
 Content-Type: application/json
 
 {
@@ -192,20 +212,28 @@ Content-Type: application/json
 
 ```bash
 # Scatter-Gather (appels parallèles)
-GET http://localhost:8082/api/v1/patterns/scatter-gather
+GET http://localhost:8082/api/patterns/scatter-gather
 
 # Content-Based Routing
-POST http://localhost:8082/api/v1/patterns/route-message
-{"type": "PAYMENT", "amount": 150.50, "currency": "EUR"}
+POST http://localhost:8082/api/patterns/route-message
+Content-Type: application/json
+
+{"type": "PAYMENT", "amount": 150.50}
 
 # Idempotent Filter
-POST http://localhost:8082/api/v1/patterns/idempotent
+POST http://localhost:8082/api/patterns/idempotent
+Content-Type: application/json
+
 {"messageId": "MSG-001", "data": "test"}
 
 # Batch Processing
-POST http://localhost:8082/api/v1/patterns/batch
-{"items": [{"id": 1}, {"id": 2}]}
+POST http://localhost:8082/api/patterns/batch
+Content-Type: application/json
+
+{"items": [{"id": 1, "name": "Item 1"}, {"id": 2, "name": "Item 2"}]}
 ```
+
+> **Note** : Dans DataWeave, `type` est un mot réservé. Utilisez `payload.'type'` (avec guillemets simples) pour y accéder.
 
 ---
 
@@ -552,29 +580,82 @@ Chaque requête génère un ID unique pour la traçabilité complète :
 
 ## 🆘 Troubleshooting
 
-### Erreurs courantes
+### Erreurs courantes et solutions
 
 **1. Domain 'default' not found**
 ```bash
-# Créer le domaine
+# Erreur: Domain 'default' has to be deployed
+# Solution: Créer le domaine manually
 mkdir -p $MULE_HOME/domains/default
-# Voir solution dans les logs
+
+# Créer mule-domain-config.xml dans ce répertoire:
+cat > $MULE_HOME/domains/default/mule-domain-config.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<domain:mule-domain
+        xmlns="http://www.mulesoft.org/schema/mule/core"
+        xmlns:domain="http://www.mulesoft.org/schema/mule/ee/domain"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+               http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+               http://www.mulesoft.org/schema/mule/ee/domain http://www.mulesoft.org/schema/mule/ee/domain/current/mule-domain-ee.xsd">
+</domain:mule-domain>
+EOF
 ```
 
-**2. Unable to resolve property**
+**2. Couldn't find configuration property value for key ${env}**
 ```bash
-# Vérifier que le fichier config existe
-ls src/main/resources/config.${env}.yaml
-# Vérifier la variable d'environnement
-echo $MULE_ENV
+# Erreur: PropertyNotFoundException pour ${env}
+# Solution: Ajouter la propriété env dans les fichiers YAML
+
+# Dans config.local.yaml, config.dev.yaml, config.prod.yaml :
+env: "local"  # ou "dev" ou "prod"
 ```
 
-**3. Tests échouent**
+**3. Invalid field name identifier: The name `type` is a reserved word**
+```bash
+# Erreur: type est un mot réservé en DataWeave
+# Solution: Utiliser des guillemets simples pour échapper le nom
+
+# ❌ Incorrect:
+payload.type
+
+# ✅ Correct:
+payload.'type'
+```
+
+**4. YAML configuration properties only supports string values**
+```bash
+# Erreur: Les valeurs booléennes/numériques ne sont pas supportées
+# Solution: Mettre toutes les valeurs entre guillemets dans les fichiers YAML
+
+# ❌ Incorrect:
+correlationIdEnabled: true
+port: 8082
+
+# ✅ Correct:
+correlationIdEnabled: "true"
+port: "8082"
+```
+
+**5. Tests échouent**
 ```bash
 # Nettoyer et rebuilder
 mvn clean install
 # Vérifier les dépendances
 mvn dependency:tree
+```
+
+**6. Application deployed mais ne répond pas**
+```bash
+# Vérifier les logs
+tail -f $MULE_HOME/logs/mule_ee.log
+
+# Vérifier le port
+netstat -an | grep 8082
+
+# Forcer un rebuild et redéploiement
+mvn clean package -DskipTests
+cp target/*.jar $MULE_HOME/apps/
 ```
 
 ---
@@ -607,16 +688,30 @@ Ce projet est sous licence MIT.
 
 ## ✅ Checklist avant production
 
-- [ ] Tous les tests passent
-- [ ] Configuration prod créée et sécurisée
+- [ ] Tous les tests passent (`mvn test`)
+- [ ] Configuration prod créée (`config.prod.yaml`) et sécurisée
 - [ ] Secrets externalisés (Secure Properties)
-- [ ] Logs configurés (pas de DEBUG en prod)
+- [ ] Logs configurés : `level: "INFO"` (pas de DEBUG en prod)
 - [ ] Error handlers référencés partout
-- [ ] Correlation ID implémenté
-- [ ] Documentation à jour
-- [ ] Performance testée
-- [ ] Monitoring configuré
+- [ ] Correlation ID implémenté et testé
+- [ ] Documentation à jour (README, RAML)
+- [ ] Performance testée (charge, stress)
+- [ ] Monitoring configuré (Anypoint Monitoring)
 - [ ] Plan de rollback défini
+- [ ] Domaine Mule créé sur l'environnement cible
+- [ ] Toutes les propriétés YAML sont des chaînes de caractères
+- [ ] Mots réservés DataWeave correctement échappés (`payload.'type'`)
+- [ ] Variables d'environnement correctement configurées
+
+## 🎓 Leçons apprises
+
+### Problèmes résolus lors du développement
+
+1. **Domaine Mule manquant** : Le domaine "default" doit être créé manuellement dans le runtime
+2. **Propriétés YAML** : Toutes les valeurs doivent être des chaînes (même booléens et nombres)
+3. **Mots réservés DataWeave** : `type`, `if`, `else`, etc. doivent être échappés avec des guillemets simples
+4. **Configuration circulaire** : La propriété `env` doit être définie dans les fichiers YAML, pas via `<global-property>`
+5. **Cache du runtime** : Après des modifications, nettoyer et recompiler : `mvn clean package`
 
 ---
 

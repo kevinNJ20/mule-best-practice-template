@@ -1,5 +1,8 @@
 # Configuration pour l'environnement PRODUCTION
 
+# Environment
+env: "prod"
+
 # HTTP Listener Configuration
 http:
   host: "0.0.0.0"
@@ -35,7 +38,7 @@ security:
 # Logging
 logging:
   level: "INFO"
-  correlationIdEnabled: true
+  correlationIdEnabled: "true"
 
 # Business Configuration
 business:
