@@ -1,9 +1,16 @@
 #%RAML 1.0
 title: Mule Best Practice Template API
 version: v1
-baseUri: http://localhost:8082/api/v1
+baseUri: https://{environment}/api
 protocols: [ HTTP, HTTPS ]
 mediaType: application/json
+
+baseUriParameters:
+  environment:
+    description: L'environnement de l'API
+    type: string
+    example: localhost:8082
+    default: mule-best-practice-template-2appqr.9d3fd9-2.can-c1.cloudhub.io
 
 documentation:
   - title: Introduction

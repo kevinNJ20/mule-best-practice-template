@@ -12,10 +12,10 @@
     <!-- ============================================ -->
     <!-- CONFIGURATION GLOBALE - BEST PRACTICES       -->
     <!-- ============================================ -->
-    <global-property doc:name="Environment Property" name="env" value="local"/>
-    <!-- Chargement du fichier de configuration pour l'environnement local -->
-    <!-- Pour d'autres environnements, modifier cette ligne : config.dev.yaml ou config.prod.yaml -->
-    <configuration-properties doc:name="Configuration Properties" file="config.${env}.yaml"/>
+    
+    <!-- Chargement du fichier de configuration pour PRODUCTION -->
+    <!-- Pour changer d'environnement, modifier le nom du fichier : config.local.yaml, config.dev.yaml -->
+    <configuration-properties doc:name="Configuration Properties" file="config.prod.yaml"/>
     
     <!-- ============================================ -->
     <!-- APIKIT CONFIGURATION                         -->
