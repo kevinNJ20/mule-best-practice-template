@@ -13,8 +13,6 @@
     <!-- MUNIT TESTS - COMMON FLOWS                  -->
     <!-- ============================================ -->
 
-    <munit:config name="test-common-flows.xml" doc:name="MUnit Configuration"/>
-
     <!-- Test: Generate Correlation ID -->
     <munit:test name="test-generate-correlation-id-new" 
                 description="Test correlation ID generation when not present" 

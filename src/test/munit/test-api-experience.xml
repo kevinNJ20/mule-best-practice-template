@@ -4,18 +4,14 @@
       xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
       xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
       xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-      xmlns:http="http://www.mulesoft.org/schema/mule/http"
       xsi:schemaLocation="
         http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
         http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
-        http://www.mulesoft.org/schema/mule/munit-tools http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
-        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+        http://www.mulesoft.org/schema/mule/munit-tools http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
 
     <!-- ============================================ -->
     <!-- MUNIT TESTS - EXPERIENCE LAYER              -->
     <!-- ============================================ -->
-
-    <munit:config name="test-api-experience.xml" doc:name="MUnit Configuration"/>
 
     <!-- Test: Health Check Endpoint -->
     <munit:test name="test-api-health-check-success" description="Test health check returns 200 OK" doc:name="Test Health Check">

@@ -13,8 +13,6 @@
     <!-- MUNIT TESTS - PROCESS LAYER                 -->
     <!-- ============================================ -->
 
-    <munit:config name="test-api-process.xml" doc:name="MUnit Configuration"/>
-
     <!-- Test: Process Get Customers -->
     <munit:test name="test-process-get-customers-success" 
                 description="Test process layer enriches customer data" 
