@@ -1,23 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesoft.org/schema/mule/core"
-      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="
-        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="         http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd         http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
     <!-- ============================================ -->
     <!-- API PROCESS LAYER - BEST PRACTICES           -->
     <!-- ============================================ -->
-
     <!-- Process Flow: Get Customers -->
-    <flow name="process-get-customers-flow" doc:name="Process Get Customers Flow">
-        <logger level="DEBUG" doc:name="Log Process Start" message="[PROCESS] Processing get customers request"/>
-        
+    <flow doc:name="Process Get Customers Flow" name="process-get-customers-flow">
+        <logger doc:name="Log Process Start" level="DEBUG" message="[PROCESS] Processing get customers request"></logger>
         <!-- Orchestration: Appel aux System APIs -->
-        <flow-ref name="system-get-customers-flow" doc:name="Call System API - Get Customers"/>
-        
+        <flow-ref doc:name="Call System API - Get Customers" name="system-get-customers-flow"></flow-ref>
         <!-- Enrichissement avec d'autres données si nécessaire -->
         <ee:transform doc:name="Enrich Customer Data">
             <ee:message>
@@ -33,24 +22,19 @@ payload map ((customer, index) ->
 )]]></ee:set-payload>
             </ee:message>
         </ee:transform>
-        
-        <logger level="DEBUG" doc:name="Log Process End" message="[PROCESS] Process completed successfully"/>
-        
+        <logger doc:name="Log Process End" level="DEBUG" message="[PROCESS] Process completed successfully"></logger>
         <error-handler>
-            <on-error-propagate type="ANY" enableNotifications="true" logException="true">
-                <logger level="ERROR" doc:name="Log Process Error" message="[PROCESS ERROR] Error occurred"/>
+            <on-error-propagate enableNotifications="true" logException="true" type="ANY">
+                <logger doc:name="Log Process Error" level="ERROR" message="[PROCESS ERROR] Error occurred"></logger>
             </on-error-propagate>
         </error-handler>
     </flow>
-
     <!-- Process Flow: Create Customer -->
-    <flow name="process-create-customer-flow" doc:name="Process Create Customer Flow">
-        <logger level="DEBUG" doc:name="Log Process Start"
-                message="[PROCESS] Processing create customer request"/>
-        
+    <flow doc:name="Process Create Customer Flow" name="process-create-customer-flow">
+        <logger doc:name="Log Process Start" level="DEBUG" message="[PROCESS] Processing create customer request"></logger>
         <!-- Validation métier -->
         <ee:transform doc:name="Business Validation">
-            <ee:message/>
+            <ee:message></ee:message>
             <ee:variables>
                 <ee:set-variable variableName="isValidEmail"><![CDATA[%dw 2.0
 output application/java
@@ -59,14 +43,11 @@ output application/java
 payload.email matches /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$/]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        
         <choice doc:name="Check Email Validation">
             <when expression="#[vars.isValidEmail == false]">
-                <raise-error doc:name="Raise Invalid Email" type="VALIDATION:INVALID_EMAIL" 
-                           description="L'adresse email fournie est invalide"/>
+                <raise-error description="L'adresse email fournie est invalide" doc:name="Raise Invalid Email" type="VALIDATION:INVALID_EMAIL"></raise-error>
             </when>
         </choice>
-        
         <!-- Transformation pour la couche System -->
         <ee:transform doc:name="Transform to System Format">
             <ee:message>
@@ -85,27 +66,20 @@ output application/json
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
-        
         <!-- Appel à la couche System -->
-        <flow-ref name="system-create-customer-flow" doc:name="Call System API - Create Customer"/>
-        
-        <logger level="DEBUG" doc:name="Log Process End"
-                message="[PROCESS] Customer created successfully"/>
-        
+        <flow-ref doc:name="Call System API - Create Customer" name="system-create-customer-flow"></flow-ref>
+        <logger doc:name="Log Process End" level="DEBUG" message="[PROCESS] Customer created successfully"></logger>
         <error-handler>
-            <on-error-propagate type="ANY" enableNotifications="true" logException="true">
-                <logger level="ERROR" doc:name="Log Process Error" message="[PROCESS ERROR] Error occurred"/>
+            <on-error-propagate enableNotifications="true" logException="true" type="ANY">
+                <logger doc:name="Log Process Error" level="ERROR" message="[PROCESS ERROR] Error occurred"></logger>
             </on-error-propagate>
         </error-handler>
     </flow>
-
     <!-- Process Flow: Business Rules - Validate Transaction Amount -->
-    <flow name="process-validate-transaction-amount-flow" doc:name="Process Validate Transaction Amount">
-        <logger level="DEBUG" doc:name="Log Validation Start"
-                message="[PROCESS] Validating transaction amount"/>
-        
+    <flow doc:name="Process Validate Transaction Amount" name="process-validate-transaction-amount-flow">
+        <logger doc:name="Log Validation Start" level="DEBUG" message="[PROCESS] Validating transaction amount"></logger>
         <ee:transform doc:name="Validate Amount">
-            <ee:message/>
+            <ee:message></ee:message>
             <ee:variables>
                 <ee:set-variable variableName="isValidAmount"><![CDATA[%dw 2.0
 output application/java
@@ -114,23 +88,16 @@ output application/java
 payload.amount <= (Mule::p('business.maxTransactionAmount') as Number)]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        
         <choice doc:name="Check Amount">
             <when expression="#[vars.isValidAmount == false]">
-                <raise-error doc:name="Raise Amount Exceeded" type="BUSINESS:AMOUNT_EXCEEDED"
-                           description="#['Le montant ' ++ (payload.amount as String) ++ ' dépasse la limite autorisée de ' ++ Mule::p('business.maxTransactionAmount')]"/>
+                <raise-error description="#['Le montant ' ++ (payload.amount as String) ++ ' dépasse la limite autorisée de ' ++ Mule::p('business.maxTransactionAmount')]" doc:name="Raise Amount Exceeded" type="BUSINESS:AMOUNT_EXCEEDED"></raise-error>
             </when>
         </choice>
-        
-        <logger level="DEBUG" doc:name="Log Validation Success"
-                message="[PROCESS] Transaction amount validated successfully"/>
-        
+        <logger doc:name="Log Validation Success" level="DEBUG" message="[PROCESS] Transaction amount validated successfully"></logger>
         <error-handler>
-            <on-error-propagate type="ANY" enableNotifications="true" logException="true">
-                <logger level="ERROR" doc:name="Log Validation Error" message="[PROCESS ERROR] Validation error occurred"/>
+            <on-error-propagate enableNotifications="true" logException="true" type="ANY">
+                <logger doc:name="Log Validation Error" level="ERROR" message="[PROCESS ERROR] Validation error occurred"></logger>
             </on-error-propagate>
         </error-handler>
     </flow>
-
 </mule>
-
