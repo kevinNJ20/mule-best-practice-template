@@ -1,71 +1,18 @@
 {
-  // ============================================
-  // CONFIGURATION OPTIMISÉE MULE DEVELOPMENT
-  // ============================================
-  
-  // Ne pas écraser la configuration globale pour editorAssociations
-  // Laisser le comportement par défaut d'Anypoint Code Builder
-  
-  // Configuration de l'éditeur pour de meilleures performances
-  "editor.formatOnSave": false,
-  "editor.formatOnPaste": false,
-  "editor.minimap.enabled": false,
-  
-  // Exclusions pour améliorer les performances de recherche
-  "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/.DS_Store": true,
-    "**/Thumbs.db": true,
-    "**/target": true,
-    "**/.mule": true,
-    "**/.settings": true,
-    "**/.classpath": true,
-    "**/.project": true,
-    ".mule": true
-  },
-  
-  "search.exclude": {
-    "**/target": true,
-    "**/.mule": true,
-    "**/node_modules": true
-  },
-  
-  // Configuration pour les fichiers Mule
-  "files.associations": {
-    "*.raml": "yaml",
-    "*.dwl": "dataweave",
-    "*.yaml": "yaml"
-  },
-  
-  // Améliorer les performances de l'éditeur XML
-  "xml.validation.enabled": false,
-  "xml.format.enabled": true,
-  
-  // Configuration du terminal
-  "terminal.integrated.defaultProfile.windows": "PowerShell",
-  
-  // Paramètres de langue (Français)
-  "files.encoding": "utf8",
-  
-  // Formatage des fichiers
-  "[xml]": {
-    "editor.defaultFormatter": "redhat.vscode-xml",
-    "editor.tabSize": 4,
-    "editor.insertSpaces": true
-  },
-  
-  "[yaml]": {
-    "editor.tabSize": 2,
-    "editor.insertSpaces": true
-  },
-  
-  "[json]": {
-    "editor.tabSize": 2,
-    "editor.insertSpaces": true
-  },
-  
-  // Analyse Java
-  "java.compile.nullAnalysis.mode": "automatic"
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        ".mule": true
+    },
+    "files.encoding": "utf8",
+    "files.autoGuessEncoding": false,
+    "java.compile.nullAnalysis.mode": "automatic",
+    "mule-dx-api-component.enableLmTools": true,
+    "mule.application.groupId": "167d12fd-a524-4ceb-9804-cb9e9ac3cdc3",
+    "mule.proxy": {
+        
+    }
 }

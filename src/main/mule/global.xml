@@ -13,9 +13,9 @@
     <!-- CONFIGURATION GLOBALE - BEST PRACTICES       -->
     <!-- ============================================ -->
     
-    <!-- Chargement du fichier de configuration pour PRODUCTION -->
-    <!-- Pour changer d'environnement, modifier le nom du fichier : config.local.yaml, config.dev.yaml -->
-    <configuration-properties doc:name="Configuration Properties" file="config.prod.yaml"/>
+    <!-- Chargement du fichier de configuration pour LOCAL -->
+    <!-- Pour changer d'environnement, modifier le nom du fichier : config.local.yaml, config.dev.yaml, config.prod.yaml -->
+    <configuration-properties doc:name="Configuration Properties" file="config.local.yaml"/>
     
     <!-- ============================================ -->
     <!-- APIKIT CONFIGURATION                         -->
