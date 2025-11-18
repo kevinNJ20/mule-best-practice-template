@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!-- ============================================ -->
+    <!-- API SYSTEM LAYER - BEST PRACTICES            -->
+    <!-- ============================================ -->
+
+    <!-- System Flow: Get Customers (Mock Database) -->
+    <flow name="system-get-customers-flow" doc:name="System Get Customers Flow">
+        <logger level="DEBUG" doc:name="Log System Call" message="[SYSTEM] Retrieving customers from database"/>
+        
+        <!-- 
+            Dans un cas réel, vous utiliseriez un connecteur Database
+            Ici nous utilisons des données mockées pour l'exemple
+        -->
+        <ee:transform doc:name="Mock Database Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+// Mock data - Dans un cas réel, ceci viendrait de la base de données
+[
+    {
+        customerId: "CUST-001",
+        firstName: "Jean",
+        lastName: "Dupont",
+        emailAddress: "jean.dupont@example.com",
+        phoneNumber: "+33612345678",
+        isActive: true,
+        createdAt: |2023-01-15T10:30:00Z|,
+        updatedAt: |2024-06-20T14:45:00Z|
+    },
+    {
+        customerId: "CUST-002",
+        firstName: "Marie",
+        lastName: "Martin",
+        emailAddress: "marie.martin@example.com",
+        phoneNumber: "+33687654321",
+        isActive: true,
+        createdAt: |2023-03-22T08:15:00Z|,
+        updatedAt: |2024-09-10T16:20:00Z|
+    },
+    {
+        customerId: "CUST-003",
+        firstName: "Pierre",
+        lastName: "Bernard",
+        emailAddress: "pierre.bernard@example.com",
+        phoneNumber: "+33698765432",
+        isActive: false,
+        createdAt: |2022-11-05T11:00:00Z|,
+        updatedAt: |2024-02-14T09:30:00Z|
+    }
+]]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <logger level="DEBUG" doc:name="Log System Response"
+                message="[SYSTEM] Retrieved customers from database"/>
+        
+        <error-handler>
+            <on-error-propagate type="ANY" enableNotifications="true" logException="true">
+                <logger level="ERROR" doc:name="Log System Error"
+                        message="[SYSTEM ERROR] Error accessing database"/>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+
+    <!-- System Flow: Create Customer (Mock Database) -->
+    <flow name="system-create-customer-flow" doc:name="System Create Customer Flow">
+        <logger level="DEBUG" doc:name="Log System Call"
+                message="[SYSTEM] Creating customer in database"/>
+        
+        <!-- 
+            Dans un cas réel, vous utiliseriez un connecteur Database avec INSERT
+            Ici nous simulons la création
+        -->
+        <ee:transform doc:name="Mock Database Insert">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+// Mock insert response
+payload ++ {
+    customerId: "CUST-" ++ (randomInt(9999) as String),
+    id: uuid(),
+    updatedAt: now()
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <logger level="DEBUG" doc:name="Log System Response"
+                message="[SYSTEM] Customer created successfully"/>
+        
+        <error-handler>
+            <on-error-propagate type="ANY" enableNotifications="true" logException="true">
+                <logger level="ERROR" doc:name="Log System Error"
+                        message="[SYSTEM ERROR] Error creating customer"/>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+
+    <!-- System Flow: Call External Service -->
+    <flow name="system-call-external-service-flow" doc:name="System Call External Service Flow">
+        <logger level="DEBUG" doc:name="Log External Call"
+                message="[SYSTEM] Calling external service"/>
+        
+        <!-- Exemple d'appel à un service externe -->
+        <try doc:name="Try External Call">
+            <http:request method="POST" doc:name="POST External Service" 
+                         config-ref="HTTP_Request_External_Config"
+                         path="/api/endpoint"
+                         responseTimeout="${services.external.timeout}">
+                <http:body><![CDATA[#[output application/json --- payload]]]></http:body>
+                <http:headers><![CDATA[#[output application/java ---
+{
+    "Content-Type": "application/json",
+    "X-Correlation-ID": (vars.correlationId default 'N/A'),
+    "Authorization": "Bearer ${security.client.id}"
+}]]]></http:headers>
+            </http:request>
+            
+            <logger level="DEBUG" doc:name="Log External Response"
+                    message="[SYSTEM] External service response received"/>
+            
+            <error-handler>
+                <on-error-continue type="HTTP:CONNECTIVITY, HTTP:TIMEOUT" enableNotifications="true" logException="true">
+                    <logger level="ERROR" doc:name="Log External Service Error"
+                            message="[SYSTEM ERROR] External service unavailable"/>
+                    
+                    <!-- Fallback response -->
+                    <ee:transform doc:name="Fallback Response">
+                        <ee:message>
+                            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    status: "FALLBACK",
+    message: "Le service externe n'est pas disponible, réponse par défaut",
+    correlationId: (vars.correlationId default 'N/A')
+}]]></ee:set-payload>
+                        </ee:message>
+                    </ee:transform>
+                </on-error-continue>
+            </error-handler>
+        </try>
+    </flow>
+
+</mule>
+

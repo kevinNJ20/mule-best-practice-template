@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+      xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+                          http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+                          http://www.mulesoft.org/schema/mule/munit-tools http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+    
+    <munit:test name="test-health-endpoint" description="Test health check endpoint">
+        <munit:execution>
+            <munit:set-event doc:name="Set Event">
+                <munit:payload value="#[{}]" mediaType="application/json"/>
+            </munit:set-event>
+            <flow-ref doc:name="Flow-ref to health endpoint" name="get:\health:apikit-config"/>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that doc:name="Assert status is UP" expression="#[payload.status]" is="#[MunitTools::equalTo('UP')]"/>
+        </munit:validation>
+    </munit:test>
+    
+</mule>
+
