@@ -1,0 +1,72 @@
+{
+  "basicConstraints": 12,
+  "criticalExtensionOIDs": [
+    "Nam",
+    "a"
+  ],
+  "extendedKeyUsage": [
+    "risus",
+    "dolor",
+    "ipsum"
+  ],
+  "extensions": [
+    {
+      "criticality": false,
+      "oid": "felis"
+    }
+  ],
+  "issuerAlternativeNames": [
+    {
+      "name": "Abbey",
+      "type": 12
+    }
+  ],
+  "issuerDN": {
+    "commonName": "Aliquam",
+    "name": "Alyssa"
+  },
+  "issuerUniqueID": [
+    false,
+    true,
+    true
+  ],
+  "issuerX500Principal": {
+    "name": "Alise"
+  },
+  "keyUsage": [
+    false,
+    true
+  ],
+  "name": "Aline",
+  "nonCriticalExtensionOIDs": [
+    "consectetur",
+    "dictum"
+  ],
+  "publicKey": {
+    "algorithm": "tempor",
+    "modulus": 11,
+    "params": 44,
+    "publicKey": "lectus"
+  },
+  "serialNumber": 66,
+  "serialNumberObject": {
+    "serialNumber": 94
+  },
+  "sigAlgName": "arcu",
+  "sigAlgOID": "adipiscing",
+  "subjectAlternativeNames": [
+    {
+      "name": "Adela",
+      "type": 84
+    }
+  ],
+  "subjectDN": {
+    "commonName": "eros",
+    "name": "Akiko"
+  },
+  "subjectX500Principal": {
+    "name": "Clarence"
+  },
+  "type": "Aliquam",
+  "version": 98
+}

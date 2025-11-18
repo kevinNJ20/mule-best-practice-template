@@ -1,0 +1,72 @@
+{
+  "basicConstraints": 81,
+  "criticalExtensionOIDs": [
+    "felis",
+    "eros"
+  ],
+  "extendedKeyUsage": [
+    "dictum",
+    "Nam",
+    "sodales"
+  ],
+  "extensions": [
+    {
+      "criticality": false,
+      "oid": "arcu"
+    }
+  ],
+  "issuerAlternativeNames": [
+    {
+      "name": "Adriana",
+      "type": 22
+    }
+  ],
+  "issuerDN": {
+    "commonName": "sodales",
+    "name": "Alejandro"
+  },
+  "issuerUniqueID": [
+    false,
+    false
+  ],
+  "issuerX500Principal": {
+    "name": "Daniel"
+  },
+  "keyUsage": [
+    false,
+    false,
+    false
+  ],
+  "name": "Alane",
+  "nonCriticalExtensionOIDs": [
+    "justo",
+    "pulvinar"
+  ],
+  "publicKey": {
+    "algorithm": "erat",
+    "modulus": 10,
+    "params": 0,
+    "publicKey": "eget"
+  },
+  "serialNumber": 53,
+  "serialNumberObject": {
+    "serialNumber": 49
+  },
+  "sigAlgName": "pretium",
+  "sigAlgOID": "nunc",
+  "subjectAlternativeNames": [
+    {
+      "name": "Ammie",
+      "type": 39
+    }
+  ],
+  "subjectDN": {
+    "commonName": "tempor",
+    "name": "Aleida"
+  },
+  "subjectX500Principal": {
+    "name": "Cecil"
+  },
+  "type": "adipiscing",
+  "version": 54
+}

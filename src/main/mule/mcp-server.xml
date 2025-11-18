@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!-- ============================================ -->
+    <!-- MCP SERVER CONFIGURATION - BEST PRACTICES    -->
+    <!-- ============================================ -->
+    <!--
+        NOTE: Cette configuration MCP utilise HTTP listeners pour exposer les outils MCP.
+        Le connecteur MCP officiel peut nécessiter une syntaxe différente selon la version.
+        Cette implémentation suit les best practices MuleSoft :
+        - Séparation des couches (API-led connectivity)
+        - Gestion d'erreurs centralisée
+        - Logging avec correlation ID
+        - Configuration externalisée
+        - Documentation complète
+    -->
+    
+    <!-- HTTP Listener Configuration pour MCP Server -->
+    <http:listener-config name="MCP_HTTP_Listener_config" 
+                         doc:name="MCP HTTP Listener Config">
+        <http:listener-connection host="${mcp.server.host}" 
+                                  port="${mcp.server.port}"/>
+    </http:listener-config>
+
+    <!-- ============================================ -->
+    <!-- MCP TOOLS - EXPOSED FUNCTIONALITIES          -->
+    <!-- ============================================ -->
+
+    <!-- MCP Tool: Get Customers -->
+    <flow name="mcp-tool-get-customers" doc:name="MCP Tool: Get Customers">
+        <http:listener config-ref="MCP_HTTP_Listener_config" 
+                      path="/mcp/tools/get_customers" 
+                      allowedMethods="POST"
+                      doc:name="MCP Tool Listener: Get Customers">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        
+        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
+        <flow-ref name="log-request-start-subflow" doc:name="Log Request Start"/>
+        
+        <logger level="INFO" doc:name="Log MCP Tool Call"
+                message="#['[MCP] Get Customers called - CorrelationId: ' ++ (vars.correlationId default '')]"/>
+        
+        <!-- Validation du schéma des paramètres -->
+        <ee:transform doc:name="Extract Parameters">
+            <ee:message/>
+            <ee:variables>
+                <ee:set-variable variableName="mcpParams"><![CDATA[%dw 2.0
+output application/java
+---
+if (payload != null and sizeOf(payload) > 0)
+    payload
+else
+    {}]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        
+        <!-- Appel au flow système pour récupérer les clients -->
+        <flow-ref name="system-get-customers-flow" doc:name="Call System Get Customers"/>
+        
+        <!-- Transformation optionnelle selon les paramètres -->
+        <ee:transform doc:name="Filter Customers">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (vars.mcpParams.limit != null)
+    payload[0 to (vars.mcpParams.limit as Number - 1)]
+else if (vars.mcpParams.status != null)
+    payload filter ($.status == vars.mcpParams.status)
+else
+    payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <!-- Format de réponse MCP -->
+        <ee:transform doc:name="Format MCP Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    tool: "get_customers",
+    result: payload,
+    correlationId: (vars.correlationId default ""),
+    timestamp: now()
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <flow-ref name="log-request-end-subflow" doc:name="Log Request End"/>
+        
+        <error-handler ref="global-api-error-handler" doc:name="Global Error Handler"/>
+    </flow>
+
+    <!-- MCP Tool: Create Customer -->
+    <flow name="mcp-tool-create-customer" doc:name="MCP Tool: Create Customer">
+        <http:listener config-ref="MCP_HTTP_Listener_config" 
+                      path="/mcp/tools/create_customer" 
+                      allowedMethods="POST"
+                      doc:name="MCP Tool Listener: Create Customer">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        
+        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
+        <flow-ref name="log-request-start-subflow" doc:name="Log Request Start"/>
+        
+        <logger level="INFO" doc:name="Log MCP Tool Call"
+                message="#['[MCP] Create Customer called - CorrelationId: ' ++ (vars.correlationId default '')]"/>
+        
+        <!-- Validation des paramètres requis -->
+        <ee:transform doc:name="Validate Parameters">
+            <ee:message/>
+            <ee:variables>
+                <ee:set-variable variableName="validationError"><![CDATA[%dw 2.0
+output application/java
+---
+if (payload.firstName == null or payload.firstName == "")
+    "firstName is required"
+else if (payload.lastName == null or payload.lastName == "")
+    "lastName is required"
+else if (payload.email == null or payload.email == "")
+    "email is required"
+else
+    null]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        
+        <choice doc:name="Check Validation">
+            <when expression="#[vars.validationError != null]">
+                <raise-error description="#[vars.validationError]" 
+                           type="VALIDATION:INVALID_INPUT" 
+                           doc:name="Raise Validation Error"/>
+            </when>
+        </choice>
+        
+        <!-- Appel au flow process pour créer le client -->
+        <flow-ref name="process-create-customer-flow" doc:name="Call Process Create Customer"/>
+        
+        <!-- Format de réponse MCP -->
+        <ee:transform doc:name="Format MCP Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    tool: "create_customer",
+    result: payload,
+    correlationId: (vars.correlationId default ""),
+    timestamp: now()
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <flow-ref name="log-request-end-subflow" doc:name="Log Request End"/>
+        
+        <error-handler ref="global-api-error-handler" doc:name="Global Error Handler"/>
+    </flow>
+
+    <!-- MCP Tool: Health Check -->
+    <flow name="mcp-tool-health-check" doc:name="MCP Tool: Health Check">
+        <http:listener config-ref="MCP_HTTP_Listener_config" 
+                      path="/mcp/tools/health_check" 
+                      allowedMethods="POST"
+                      doc:name="MCP Tool Listener: Health Check">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+        </http:listener>
+        
+        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
+        
+        <logger level="INFO" doc:name="Log MCP Tool Call"
+                message="#['[MCP] Health Check called - CorrelationId: ' ++ (vars.correlationId default '')]"/>
+        
+        <!-- Réponse de health check -->
+        <ee:transform doc:name="Health Check Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    tool: "health_check",
+    result: {
+        status: "UP",
+        service: "Mule Best Practice Template",
+        version: "1.0.1",
+        environment: Mule::p('env'),
+        timestamp: now()
+    },
+    correlationId: (vars.correlationId default "")
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <error-handler ref="global-api-error-handler" doc:name="Global Error Handler"/>
+    </flow>
+
+    <!-- MCP Tool: Execute Scatter-Gather Pattern -->
+    <flow name="mcp-tool-scatter-gather" doc:name="MCP Tool: Scatter-Gather Pattern">
+        <http:listener config-ref="MCP_HTTP_Listener_config" 
+                      path="/mcp/tools/execute_scatter_gather" 
+                      allowedMethods="POST"
+                      doc:name="MCP Tool Listener: Scatter-Gather">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        
+        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
+        <flow-ref name="log-request-start-subflow" doc:name="Log Request Start"/>
+        
+        <logger level="INFO" doc:name="Log MCP Tool Call"
+                message="#['[MCP] Scatter-Gather called - CorrelationId: ' ++ (vars.correlationId default '')]"/>
+        
+        <!-- Validation du paramètre requestId -->
+        <choice doc:name="Validate RequestId">
+            <when expression="#[payload.requestId == null or payload.requestId == '']">
+                <raise-error description="requestId is required" 
+                           type="VALIDATION:INVALID_INPUT" 
+                           doc:name="Raise Validation Error"/>
+            </when>
+        </choice>
+        
+        <!-- Appel au pattern scatter-gather -->
+        <flow-ref name="pattern-scatter-gather-flow" doc:name="Call Scatter-Gather Pattern"/>
+        
+        <!-- Format de réponse MCP -->
+        <ee:transform doc:name="Format MCP Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    tool: "execute_scatter_gather",
+    result: payload,
+    correlationId: (vars.correlationId default ""),
+    timestamp: now()
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <flow-ref name="log-request-end-subflow" doc:name="Log Request End"/>
+        
+        <error-handler ref="global-api-error-handler" doc:name="Global Error Handler"/>
+    </flow>
+
+    <!-- MCP Tool: Execute Content-Based Routing -->
+    <flow name="mcp-tool-content-based-routing" doc:name="MCP Tool: Content-Based Routing">
+        <http:listener config-ref="MCP_HTTP_Listener_config" 
+                      path="/mcp/tools/execute_content_based_routing" 
+                      allowedMethods="POST"
+                      doc:name="MCP Tool Listener: Content-Based Routing">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        
+        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
+        <flow-ref name="log-request-start-subflow" doc:name="Log Request Start"/>
+        
+        <logger level="INFO" doc:name="Log MCP Tool Call"
+                message="#['[MCP] Content-Based Routing called - CorrelationId: ' ++ (vars.correlationId default '')]"/>
+        
+        <!-- Validation du paramètre type -->
+        <choice doc:name="Validate Type">
+            <when expression="#[payload.type == null or payload.type == '']">
+                <raise-error description="type is required (PAYMENT, REFUND, or TRANSFER)" 
+                           type="VALIDATION:INVALID_INPUT" 
+                           doc:name="Raise Validation Error"/>
+            </when>
+            <when expression="#[payload.type != 'PAYMENT' and payload.type != 'REFUND' and payload.type != 'TRANSFER']">
+                <raise-error description="type must be PAYMENT, REFUND, or TRANSFER" 
+                           type="VALIDATION:INVALID_INPUT" 
+                           doc:name="Raise Validation Error"/>
+            </when>
+        </choice>
+        
+        <!-- Préparation du payload pour le routing -->
+        <ee:transform doc:name="Prepare Routing Payload">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    type: payload.type,
+    amount: payload.amount default 0,
+    correlationId: (vars.correlationId default "")
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <!-- Appel au pattern content-based routing -->
+        <flow-ref name="pattern-content-based-routing-flow" doc:name="Call Content-Based Routing Pattern"/>
+        
+        <!-- Format de réponse MCP -->
+        <ee:transform doc:name="Format MCP Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    tool: "execute_content_based_routing",
+    result: payload,
+    correlationId: (vars.correlationId default ""),
+    timestamp: now()
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <flow-ref name="log-request-end-subflow" doc:name="Log Request End"/>
+        
+        <error-handler ref="global-api-error-handler" doc:name="Global Error Handler"/>
+    </flow>
+
+    <!-- MCP Tool: Execute Batch Processing -->
+    <flow name="mcp-tool-batch-processing" doc:name="MCP Tool: Batch Processing">
+        <http:listener config-ref="MCP_HTTP_Listener_config" 
+                      path="/mcp/tools/execute_batch_processing" 
+                      allowedMethods="POST"
+                      doc:name="MCP Tool Listener: Batch Processing">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        
+        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
+        <flow-ref name="log-request-start-subflow" doc:name="Log Request Start"/>
+        
+        <logger level="INFO" doc:name="Log MCP Tool Call"
+                message="#['[MCP] Batch Processing called - CorrelationId: ' ++ (vars.correlationId default '')]"/>
+        
+        <!-- Validation du paramètre items -->
+        <choice doc:name="Validate Items">
+            <when expression="#[payload.items == null or sizeOf(payload.items) == 0]">
+                <raise-error description="items array is required and must not be empty" 
+                           type="VALIDATION:INVALID_INPUT" 
+                           doc:name="Raise Validation Error"/>
+            </when>
+        </choice>
+        
+        <!-- Préparation du payload pour le batch -->
+        <ee:transform doc:name="Prepare Batch Payload">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    items: payload.items,
+    batchSize: payload.batchSize default (Mule::p('business.batchSize') as Number)
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <!-- Appel au pattern batch processing -->
+        <flow-ref name="pattern-batch-processing-flow" doc:name="Call Batch Processing Pattern"/>
+        
+        <!-- Format de réponse MCP -->
+        <ee:transform doc:name="Format MCP Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    tool: "execute_batch_processing",
+    result: payload,
+    correlationId: (vars.correlationId default ""),
+    timestamp: now()
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <flow-ref name="log-request-end-subflow" doc:name="Log Request End"/>
+        
+        <error-handler ref="global-api-error-handler" doc:name="Global Error Handler"/>
+    </flow>
+
+    <!-- MCP Tool: List Available Tools (Discovery) -->
+    <flow name="mcp-tool-list-tools" doc:name="MCP Tool: List Available Tools">
+        <http:listener config-ref="MCP_HTTP_Listener_config" 
+                      path="/mcp/tools" 
+                      allowedMethods="GET"
+                      doc:name="MCP Tools Discovery">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+        </http:listener>
+        
+        <flow-ref name="generate-correlation-id-subflow" doc:name="Generate Correlation ID"/>
+        
+        <logger level="INFO" doc:name="Log MCP Discovery"
+                message="#['[MCP] Tools discovery called - CorrelationId: ' ++ (vars.correlationId default '')]"/>
+        
+        <!-- Liste des outils disponibles -->
+        <ee:transform doc:name="List MCP Tools">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    server: {
+        name: Mule::p('mcp.server.name'),
+        version: "1.0.1",
+        host: Mule::p('mcp.server.host'),
+        port: Mule::p('mcp.server.port')
+    },
+    tools: [
+        {
+            name: "get_customers",
+            description: "Récupère la liste des clients avec filtres optionnels",
+            parameters: {
+                limit: "number (optional) - Nombre maximum de clients",
+                status: "string (optional) - Filtrer par statut (ACTIVE, INACTIVE)"
+            },
+            endpoint: "/mcp/tools/get_customers"
+        },
+        {
+            name: "create_customer",
+            description: "Crée un nouveau client",
+            parameters: {
+                firstName: "string (required) - Prénom du client",
+                lastName: "string (required) - Nom du client",
+                email: "string (required) - Adresse email",
+                phone: "string (optional) - Numéro de téléphone"
+            },
+            endpoint: "/mcp/tools/create_customer"
+        },
+        {
+            name: "health_check",
+            description: "Vérifie l'état de santé du serveur MCP",
+            parameters: {},
+            endpoint: "/mcp/tools/health_check"
+        },
+        {
+            name: "execute_scatter_gather",
+            description: "Exécute le pattern Scatter-Gather MuleSoft",
+            parameters: {
+                requestId: "string (required) - ID de la requête",
+                timeout: "number (optional) - Timeout en millisecondes"
+            },
+            endpoint: "/mcp/tools/execute_scatter_gather"
+        },
+        {
+            name: "execute_content_based_routing",
+            description: "Exécute le pattern Content-Based Routing MuleSoft",
+            parameters: {
+                type: "string (required) - Type de transaction (PAYMENT, REFUND, TRANSFER)",
+                amount: "number (optional) - Montant de la transaction"
+            },
+            endpoint: "/mcp/tools/execute_content_based_routing"
+        },
+        {
+            name: "execute_batch_processing",
+            description: "Exécute le pattern Batch Processing MuleSoft",
+            parameters: {
+                items: "array (required) - Liste des items à traiter",
+                batchSize: "number (optional) - Taille du lot"
+            },
+            endpoint: "/mcp/tools/execute_batch_processing"
+        }
+    ],
+    correlationId: (vars.correlationId default ""),
+    timestamp: now()
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <error-handler ref="global-api-error-handler" doc:name="Global Error Handler"/>
+    </flow>
+
+</mule>

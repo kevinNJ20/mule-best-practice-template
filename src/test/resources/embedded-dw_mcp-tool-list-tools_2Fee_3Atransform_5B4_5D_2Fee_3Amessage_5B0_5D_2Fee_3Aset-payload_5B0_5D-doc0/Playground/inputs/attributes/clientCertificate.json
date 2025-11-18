@@ -1,0 +1,74 @@
+{
+  "basicConstraints": 8,
+  "criticalExtensionOIDs": [
+    "erat",
+    "Nunc",
+    "consectetur"
+  ],
+  "extendedKeyUsage": [
+    "faucibus",
+    "dolor"
+  ],
+  "extensions": [
+    {
+      "criticality": false,
+      "oid": "molestie"
+    }
+  ],
+  "issuerAlternativeNames": [
+    {
+      "name": "Adelaida",
+      "type": 77
+    }
+  ],
+  "issuerDN": {
+    "commonName": "sodales",
+    "name": "Alica"
+  },
+  "issuerUniqueID": [
+    true,
+    true,
+    true
+  ],
+  "issuerX500Principal": {
+    "name": "Alba"
+  },
+  "keyUsage": [
+    false,
+    true,
+    true
+  ],
+  "name": "Carmine",
+  "nonCriticalExtensionOIDs": [
+    "sit",
+    "elit",
+    "vitae"
+  ],
+  "publicKey": {
+    "algorithm": "libero",
+    "modulus": 53,
+    "params": 63,
+    "publicKey": "amet"
+  },
+  "serialNumber": 92,
+  "serialNumberObject": {
+    "serialNumber": 54
+  },
+  "sigAlgName": "libero",
+  "sigAlgOID": "nibh",
+  "subjectAlternativeNames": [
+    {
+      "name": "Alonso",
+      "type": 82
+    }
+  ],
+  "subjectDN": {
+    "commonName": "tempor",
+    "name": "Dalton"
+  },
+  "subjectX500Principal": {
+    "name": "Ali"
+  },
+  "type": "ac",
+  "version": 50
+}

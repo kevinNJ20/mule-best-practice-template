@@ -1,0 +1,72 @@
+{
+  "basicConstraints": 81,
+  "criticalExtensionOIDs": [
+    "sit",
+    "tincidunt",
+    "adipiscing"
+  ],
+  "extendedKeyUsage": [
+    "aliquam",
+    "pretium"
+  ],
+  "extensions": [
+    {
+      "criticality": false,
+      "oid": "pretium"
+    }
+  ],
+  "issuerAlternativeNames": [
+    {
+      "name": "Akiko",
+      "type": 99
+    }
+  ],
+  "issuerDN": {
+    "commonName": "Nam",
+    "name": "Aja"
+  },
+  "issuerUniqueID": [
+    false,
+    true
+  ],
+  "issuerX500Principal": {
+    "name": "Alfred"
+  },
+  "keyUsage": [
+    false,
+    true
+  ],
+  "name": "Alycia",
+  "nonCriticalExtensionOIDs": [
+    "justo",
+    "libero",
+    "ut"
+  ],
+  "publicKey": {
+    "algorithm": "sit",
+    "modulus": 95,
+    "params": 92,
+    "publicKey": "tincidunt"
+  },
+  "serialNumber": 66,
+  "serialNumberObject": {
+    "serialNumber": 30
+  },
+  "sigAlgName": "erat",
+  "sigAlgOID": "nunc",
+  "subjectAlternativeNames": [
+    {
+      "name": "Andera",
+      "type": 96
+    }
+  ],
+  "subjectDN": {
+    "commonName": "ac",
+    "name": "Abraham"
+  },
+  "subjectX500Principal": {
+    "name": "Dan"
+  },
+  "type": "consectetur",
+  "version": 50
+}

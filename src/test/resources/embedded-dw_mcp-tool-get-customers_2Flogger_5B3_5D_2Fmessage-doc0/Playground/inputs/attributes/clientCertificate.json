@@ -1,0 +1,73 @@
+{
+  "basicConstraints": 71,
+  "criticalExtensionOIDs": [
+    "viverra",
+    "tincidunt"
+  ],
+  "extendedKeyUsage": [
+    "nibh",
+    "sed"
+  ],
+  "extensions": [
+    {
+      "criticality": false,
+      "oid": "nunc"
+    }
+  ],
+  "issuerAlternativeNames": [
+    {
+      "name": "Cedric",
+      "type": 83
+    }
+  ],
+  "issuerDN": {
+    "commonName": "ac",
+    "name": "Ana"
+  },
+  "issuerUniqueID": [
+    false,
+    true,
+    true
+  ],
+  "issuerX500Principal": {
+    "name": "Christoper"
+  },
+  "keyUsage": [
+    true,
+    false,
+    true
+  ],
+  "name": "Anastacia",
+  "nonCriticalExtensionOIDs": [
+    "ipsum",
+    "sed",
+    "molestie"
+  ],
+  "publicKey": {
+    "algorithm": "tempor",
+    "modulus": 12,
+    "params": 41,
+    "publicKey": "venenatis"
+  },
+  "serialNumber": 11,
+  "serialNumberObject": {
+    "serialNumber": 75
+  },
+  "sigAlgName": "lorem",
+  "sigAlgOID": "eget",
+  "subjectAlternativeNames": [
+    {
+      "name": "Bud",
+      "type": 90
+    }
+  ],
+  "subjectDN": {
+    "commonName": "convallis",
+    "name": "Amelia"
+  },
+  "subjectX500Principal": {
+    "name": "Chad"
+  },
+  "type": "eros",
+  "version": 4
+}

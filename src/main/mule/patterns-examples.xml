@@ -104,28 +104,28 @@ output application/json
             <!-- Route pour les paiements -->
             <when expression="#[payload.'type' == 'PAYMENT']">
                 <logger level="INFO" doc:name="Log Payment Route"
-                        message="#['[ROUTING] CorrelationId: ' ++ vars.correlationId ++ ' | Routing to payment processor']"/>
+                        message="#['[ROUTING] CorrelationId: ' ++ (vars.correlationId default '') ++ ' | Routing to payment processor']"/>
                 <flow-ref name="pattern-process-payment-subflow" doc:name="Process Payment"/>
             </when>
             
             <!-- Route pour les remboursements -->
             <when expression="#[payload.'type' == 'REFUND']">
                 <logger level="INFO" doc:name="Log Refund Route"
-                        message="#['[ROUTING] CorrelationId: ' ++ vars.correlationId ++ ' | Routing to refund processor']"/>
+                        message="#['[ROUTING] CorrelationId: ' ++ (vars.correlationId default '') ++ ' | Routing to refund processor']"/>
                 <flow-ref name="pattern-process-refund-subflow" doc:name="Process Refund"/>
             </when>
             
             <!-- Route pour les virements -->
             <when expression="#[payload.'type' == 'TRANSFER']">
                 <logger level="INFO" doc:name="Log Transfer Route"
-                        message="#['[ROUTING] CorrelationId: ' ++ vars.correlationId ++ ' | Routing to transfer processor']"/>
+                        message="#['[ROUTING] CorrelationId: ' ++ (vars.correlationId default '') ++ ' | Routing to transfer processor']"/>
                 <flow-ref name="pattern-process-transfer-subflow" doc:name="Process Transfer"/>
             </when>
             
             <!-- Route par défaut -->
             <otherwise>
                 <logger level="WARN" doc:name="Log Unknown Route"
-                        message="#['[ROUTING] CorrelationId: ' ++ vars.correlationId ++ ' | Unknown type, using default processor']"/>
+                        message="#['[ROUTING] CorrelationId: ' ++ (vars.correlationId default '') ++ ' | Unknown type, using default processor']"/>
                 <ee:transform doc:name="Unknown Type Response">
                     <ee:message>
                         <ee:set-payload><![CDATA[%dw 2.0
@@ -223,7 +223,7 @@ false // Simuler : message non traité]]></ee:set-variable>
         <choice doc:name="Check if Already Processed">
             <when expression="#[vars.isProcessed == true]">
                 <logger level="WARN" doc:name="Log Duplicate"
-                        message="#['[IDEMPOTENT] CorrelationId: ' ++ vars.correlationId ++ ' | Message ' ++ vars.messageId ++ ' already processed']"/>
+                        message="#['[IDEMPOTENT] CorrelationId: ' ++ (vars.correlationId default '') ++ ' | Message ' ++ vars.messageId ++ ' already processed']"/>
                 <ee:transform doc:name="Duplicate Response">
                     <ee:message>
                         <ee:set-payload><![CDATA[%dw 2.0
@@ -240,7 +240,7 @@ output application/json
             </when>
             <otherwise>
                 <logger level="INFO" doc:name="Log New Message"
-                        message="#['[IDEMPOTENT] CorrelationId: ' ++ vars.correlationId ++ ' | Processing new message ' ++ vars.messageId]"/>
+                        message="#['[IDEMPOTENT] CorrelationId: ' ++ (vars.correlationId default '') ++ ' | Processing new message ' ++ vars.messageId]"/>
                 
                 <!-- Traiter le message -->
                 <ee:transform doc:name="Process Message">
@@ -288,12 +288,12 @@ sizeOf(payload.items)]]></ee:set-variable>
         </ee:transform>
         
         <logger level="INFO" doc:name="Log Batch Info"
-                message="#['[BATCH] CorrelationId: ' ++ vars.correlationId ++ ' | Processing ' ++ vars.totalItems ++ ' items in ' ++ sizeOf(payload) ++ ' batches']"/>
+                message="#['[BATCH] CorrelationId: ' ++ (vars.correlationId default '') ++ ' | Processing ' ++ vars.totalItems ++ ' items in ' ++ sizeOf(payload) ++ ' batches']"/>
         
         <!-- Traiter chaque lot -->
         <foreach doc:name="For Each Batch" collection="#[payload pluck $]">
             <logger level="DEBUG" doc:name="Log Batch"
-                    message="#['[BATCH] CorrelationId: ' ++ vars.correlationId ++ ' | Processing batch with ' ++ sizeOf(payload) ++ ' items']"/>
+                    message="#['[BATCH] CorrelationId: ' ++ (vars.correlationId default '') ++ ' | Processing batch with ' ++ sizeOf(payload) ++ ' items']"/>
             
             <!-- Traitement du lot -->
             <ee:transform doc:name="Process Batch">

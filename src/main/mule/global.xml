@@ -226,7 +226,7 @@ output application/json
                 </ee:variables>
             </ee:transform>
             <logger level="ERROR" doc:name="Log Error"
-                    message="#['[ERROR] Internal Server Error - CorrelationId: ' ++ (vars.correlationId default '') ++ ' - Type: ' ++ error.errorType ++ ' - Error: ' ++ error.description]"/>
+                    message="#['[ERROR] Internal Server Error - CorrelationId: ' ++ (vars.correlationId default '') ++ ' - Type: ' ++ (error.errorType default 'UNKNOWN') ++ ' - Error: ' ++ (error.description default 'No description available')]"/>
         </on-error-propagate>
     </error-handler>
     

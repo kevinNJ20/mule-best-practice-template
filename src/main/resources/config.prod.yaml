@@ -45,3 +45,10 @@ business:
   maxTransactionAmount: "100000"
   batchSize: "100"
 
+# MCP Server Configuration
+mcp:
+  server:
+    port: "8085"
+    host: "0.0.0.0"
+    name: "Mule Best Practice MCP Server"
+

@@ -29,6 +29,7 @@
 		<!-- Connector versions for Mule 4.10.0 -->
 		<mule.http.connector.version>1.10.0</mule.http.connector.version>
 		<mule.apikit.module.version>1.11.1</mule.apikit.module.version>
+		<mule.mcp.connector.version>1.0.0</mule.mcp.connector.version>
 		<mule.maven.plugin.version>4.5.2</mule.maven.plugin.version>
 		<maven.deploy.plugin.version>3.1.3</maven.deploy.plugin.version>
 		<maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
@@ -65,7 +66,7 @@
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
-					<version>4.5.2</version>
+					<version>1.0.0</version>
 					<configuration>
 						<lifecycleMappingMetadata>
 							<pluginExecutions>
@@ -150,6 +151,13 @@
 			<groupId>org.mule.modules</groupId>
 			<artifactId>mule-apikit-module</artifactId>
 			<version>${mule.apikit.module.version}</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<!-- MCP Connector for MCP Server -->
+		<dependency>
+			<groupId>com.mulesoft.connectors</groupId>
+			<artifactId>mule-mcp-connector</artifactId>
+			<version>${mule.mcp.connector.version}</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<!-- Test dependencies -->
