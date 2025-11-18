@@ -111,4 +111,6 @@ build/
 
 # Note: .tooling-project est nécessaire pour Anypoint Code Builder
 # Ne pas l'ignorer !
+.tooling-project/
+!.tooling-project/
 .tooling-project

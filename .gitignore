@@ -113,3 +113,4 @@ build/
 # Ne pas l'ignorer !
 .tooling-project/
 !.tooling-project/
+.tooling-project
