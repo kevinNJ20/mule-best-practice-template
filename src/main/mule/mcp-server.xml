@@ -292,12 +292,12 @@ output application/json
         
         <!-- Validation du paramètre type -->
         <choice doc:name="Validate Type">
-            <when expression="#[payload.type == null or payload.type == '']">
+            <when expression="#[payload.'type' == null or payload.'type' == '']">
                 <raise-error description="type is required (PAYMENT, REFUND, or TRANSFER)" 
                            type="VALIDATION:INVALID_INPUT" 
                            doc:name="Raise Validation Error"/>
             </when>
-            <when expression="#[payload.type != 'PAYMENT' and payload.type != 'REFUND' and payload.type != 'TRANSFER']">
+            <when expression="#[payload.'type' != 'PAYMENT' and payload.'type' != 'REFUND' and payload.'type' != 'TRANSFER']">
                 <raise-error description="type must be PAYMENT, REFUND, or TRANSFER" 
                            type="VALIDATION:INVALID_INPUT" 
                            doc:name="Raise Validation Error"/>
@@ -311,7 +311,7 @@ output application/json
 output application/json
 ---
 {
-    type: payload.type,
+    "type": payload.'type',
     amount: payload.amount default 0,
     correlationId: (vars.correlationId default "")
 }]]></ee:set-payload>
@@ -476,7 +476,7 @@ output application/json
             name: "execute_content_based_routing",
             description: "Exécute le pattern Content-Based Routing MuleSoft",
             parameters: {
-                type: "string (required) - Type de transaction (PAYMENT, REFUND, TRANSFER)",
+                "type": "string (required) - Type de transaction (PAYMENT, REFUND, TRANSFER)",
                 amount: "number (optional) - Montant de la transaction"
             },
             endpoint: "/mcp/tools/execute_content_based_routing"
