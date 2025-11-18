@@ -10,6 +10,7 @@ Ce projet sert de template de référence pour le développement d'applications 
 
 - ✅ **APIkit Router** avec spécification RAML complète
 - ✅ **Architecture API-led Connectivity** (Experience, Process, System)
+- ✅ **MCP Server** (Model Context Protocol) pour intégration avec outils IA
 - ✅ **Console APIkit** pour tester l'API
 - ✅ **Gestion globale des erreurs** avec codes standardisés
 - ✅ **Logging standardisé** et traçabilité (Correlation ID)
@@ -43,7 +44,9 @@ mvn clean install
 mvn mule:run -Plocal
 ```
 
-L'application démarre sur `http://localhost:8082`
+**Ou utiliser le déploiement local via Anypoint Code Builder :**
+- L'application démarre automatiquement sur `http://localhost:8082`
+- Le serveur MCP démarre sur `http://localhost:8083`
 
 **Console APIkit** : `http://localhost:8082/console` (pour tester l'API)
 
@@ -84,7 +87,8 @@ mule-best-practice-template/
 │   │   ├── common-flows.xml          # Sub-flows réutilisables
 │   │   ├── api-layer-process.xml     # Couche Process
 │   │   ├── api-layer-system.xml      # Couche System
-│   │   └── patterns-examples.xml     # Patterns MuleSoft
+│   │   ├── patterns-examples.xml     # Patterns MuleSoft
+│   │   └── mcp-server.xml            # Serveur MCP (Model Context Protocol)
 │   └── resources/
 │       ├── api/
 │       │   ├── mule-best-practice-template.raml  # Spec RAML
@@ -94,8 +98,10 @@ mule-best-practice-template/
 │       ├── config.prod.yaml          # Config production
 │       └── log4j2.xml
 ├── src/test/munit/
-│   ├── test-api-process.xml
-│   └── test-common-flows.xml
+│   ├── test-api-experience.xml       # Tests Experience Layer
+│   ├── test-api-process.xml          # Tests Process Layer
+│   ├── test-common-flows.xml         # Tests flows communs
+│   └── test-health-check.xml         # Tests health check
 └── pom.xml
 ```
 
@@ -187,7 +193,7 @@ La console permet de :
 - Documentation auto-générée depuis le RAML
 - Exemples de requêtes/réponses
 
-#### API Endpoints
+#### API Endpoints (Port 8082)
 
 ```bash
 # Health Check
@@ -207,6 +213,70 @@ Content-Type: application/json
   "phone": "+33612345678"
 }
 ```
+
+#### MCP Server Endpoints (Port 8083)
+
+Le serveur MCP expose des outils pour l'intégration avec des assistants IA :
+
+```bash
+# Liste des outils disponibles
+GET http://localhost:8083/mcp/tools
+
+# Get Customers (via MCP)
+POST http://localhost:8083/mcp/tools/get_customers
+Content-Type: application/json
+
+{
+  "limit": 10,
+  "status": "ACTIVE"
+}
+
+# Create Customer (via MCP)
+POST http://localhost:8083/mcp/tools/create_customer
+Content-Type: application/json
+
+{
+  "firstName": "Jean",
+  "lastName": "Dupont",
+  "email": "jean.dupont@example.com",
+  "phone": "+33612345678"
+}
+
+# Health Check MCP
+POST http://localhost:8083/mcp/tools/health_check
+
+# Scatter-Gather Pattern
+POST http://localhost:8083/mcp/tools/execute_scatter_gather
+Content-Type: application/json
+
+{
+  "requestId": "REQ-001",
+  "timeout": 30000
+}
+
+# Content-Based Routing Pattern
+POST http://localhost:8083/mcp/tools/execute_content_based_routing
+Content-Type: application/json
+
+{
+  "type": "PAYMENT",
+  "amount": 150.50
+}
+
+# Batch Processing Pattern
+POST http://localhost:8083/mcp/tools/execute_batch_processing
+Content-Type: application/json
+
+{
+  "items": [
+    {"id": 1, "name": "Item 1"},
+    {"id": 2, "name": "Item 2"}
+  ],
+  "batchSize": 5
+}
+```
+
+> **Note** : Pour les endpoints MCP avec le champ `type`, utilisez toujours `"type"` dans votre JSON. Dans DataWeave, le mot `type` est réservé et doit être échappé avec des guillemets simples (`payload.'type'`).
 
 #### Patterns Examples
 
@@ -261,7 +331,25 @@ mvn clean verify
 
 ## 📚 Best Practices implémentées
 
-### 1. Gestion des erreurs
+### 1. Architecture API-led Connectivity
+
+**3 couches distinctes** avec responsabilités claires :
+- **Experience Layer** (`interface.xml`) : Format client, transformation API, agrégation
+- **Process Layer** (`api-layer-process.xml`) : Logique métier, orchestration, validation
+- **System Layer** (`api-layer-system.xml`) : Intégration backends, accès DB/Services
+
+### 2. MCP Server
+
+Le **Model Context Protocol (MCP) Server** permet l'intégration de l'application avec des assistants IA et des outils de développement. Il expose les fonctionnalités de l'application via des outils standardisés :
+
+- Récupération de clients
+- Création de clients
+- Exécution de patterns MuleSoft
+- Health checks
+
+Le serveur MCP écoute sur le port 8083 (configurable dans `config.local.yaml`).
+
+### 3. Gestion des erreurs
 
 **Error handler global réutilisable** avec format JSON uniforme :
 
@@ -282,7 +370,7 @@ Format de réponse d'erreur :
 }
 ```
 
-### 2. Logging et traçabilité
+### 4. Logging et traçabilité
 
 **Correlation ID** automatique sur chaque requête :
 
@@ -294,7 +382,7 @@ Format de réponse d'erreur :
 
 Header HTTP retourné : `X-Correlation-ID: abc-123`
 
-### 3. Configuration externalisée
+### 5. Configuration externalisée
 
 ✅ Aucune valeur hardcodée  
 ✅ Propriétés par environnement  
@@ -305,14 +393,7 @@ Header HTTP retourné : `X-Correlation-ID: abc-123`
 <db:connection url="${db.url}"/>
 ```
 
-### 4. API-led Connectivity
-
-**3 couches distinctes** avec responsabilités claires :
-- **Experience** : Format client, agrégation
-- **Process** : Logique métier, orchestration  
-- **System** : Intégration backends
-
-### 5. Validation
+### 6. Validation
 
 ```xml
 <flow-ref name="validate-input-subflow"/>
@@ -323,7 +404,7 @@ Validation à plusieurs niveaux :
 - Validation métier (email valide, montants, etc.)
 - Messages d'erreur descriptifs
 
-### 6. Réutilisabilité
+### 7. Réutilisabilité
 
 **Sub-flows communs** :
 - `generate-correlation-id-subflow`
@@ -365,9 +446,10 @@ Traite les données par **lots** pour optimiser les performances.
 | Mule Runtime | 4.10.0 | ✅ Stable |
 | HTTP Connector | 1.10.0 | ✅ À jour |
 | APIkit Module | 1.11.1 | ✅ À jour |
-| Validation Module | 2.1.0 | ✅ À jour |
+| MCP Connector | 1.0.0 | ✅ À jour |
 | MUnit Runner | 3.2.0 | ✅ À jour |
 | MUnit Tools | 3.2.0 | ✅ À jour |
+| Mule Maven Plugin | 4.5.2 | ✅ À jour |
 
 ### Dépendances additionnelles recommandées
 
@@ -614,13 +696,28 @@ env: "local"  # ou "dev" ou "prod"
 **3. Invalid field name identifier: The name `type` is a reserved word**
 ```bash
 # Erreur: type est un mot réservé en DataWeave
-# Solution: Utiliser des guillemets simples pour échapper le nom
+# Solution: Utiliser des guillemets simples pour échapper le nom lors de l'accès au champ
+#           Utiliser des guillemets doubles pour la clé d'objet JSON
 
 # ❌ Incorrect:
 payload.type
+{ type: payload.value }
 
 # ✅ Correct:
-payload.'type'
+payload.'type'           # Accès au champ
+{ "type": payload.value }  # Clé d'objet JSON avec guillemets doubles
+type: payload.'type'     # Clé d'objet sans guillemets (OK si pas réservé ailleurs)
+```
+
+**Exemple complet corrigé :**
+```xml
+<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "type": payload.'type',    # Clé avec guillemets + accès au champ avec guillemets simples
+    amount: payload.amount
+}]]></ee:set-payload>
 ```
 
 **4. YAML configuration properties only supports string values**
@@ -637,7 +734,21 @@ correlationIdEnabled: "true"
 port: "8082"
 ```
 
-**5. Tests échouent**
+**5. Incompatible lifecycle mapping plugin version**
+```bash
+# Erreur: Incompatible lifecycle mapping plugin version X.X.X
+# Solution: Utiliser la version 1.0.0 pour le plugin lifecycle-mapping
+
+# Dans pom.xml, ligne ~69:
+<plugin>
+    <groupId>org.eclipse.m2e</groupId>
+    <artifactId>lifecycle-mapping</artifactId>
+    <version>1.0.0</version>  # Pas 4.5.2 (qui est pour mule-maven-plugin)
+    ...
+</plugin>
+```
+
+**6. Tests échouent**
 ```bash
 # Nettoyer et rebuilder
 mvn clean install
@@ -645,7 +756,7 @@ mvn clean install
 mvn dependency:tree
 ```
 
-**6. Application deployed mais ne répond pas**
+**7. Application deployed mais ne répond pas**
 ```bash
 # Vérifier les logs
 tail -f $MULE_HOME/logs/mule_ee.log
@@ -684,6 +795,16 @@ Ce projet est sous licence MIT.
 
 **Kevin J. N.** - Template initial pour Jasmine Conseil
 
+## 🔄 Changelog
+
+### Version 1.0.1
+- ✅ Ajout du serveur MCP (Model Context Protocol)
+- ✅ Correction des erreurs liées au mot réservé `type` en DataWeave
+- ✅ Mise à jour des dépendances MCP Connector
+- ✅ Ajout de tests MUnit pour toutes les couches
+- ✅ Configuration améliorée avec support multi-environnements
+- ✅ Documentation complète des endpoints MCP
+
 ---
 
 ## ✅ Checklist avant production
@@ -700,8 +821,10 @@ Ce projet est sous licence MIT.
 - [ ] Plan de rollback défini
 - [ ] Domaine Mule créé sur l'environnement cible
 - [ ] Toutes les propriétés YAML sont des chaînes de caractères
-- [ ] Mots réservés DataWeave correctement échappés (`payload.'type'`)
+- [ ] Mots réservés DataWeave correctement échappés (`payload.'type'` pour accès, `"type":` pour clé JSON)
 - [ ] Variables d'environnement correctement configurées
+- [ ] Serveur MCP configuré et testé si nécessaire
+- [ ] Plugin lifecycle-mapping à la version 1.0.0 (pas 4.5.2)
 
 ## 🎓 Leçons apprises
 
@@ -709,9 +832,13 @@ Ce projet est sous licence MIT.
 
 1. **Domaine Mule manquant** : Le domaine "default" doit être créé manuellement dans le runtime
 2. **Propriétés YAML** : Toutes les valeurs doivent être des chaînes (même booléens et nombres)
-3. **Mots réservés DataWeave** : `type`, `if`, `else`, etc. doivent être échappés avec des guillemets simples
+3. **Mots réservés DataWeave** : `type`, `if`, `else`, etc. doivent être échappés :
+   - Accès au champ : `payload.'type'` (guillemets simples)
+   - Clé d'objet JSON : `"type": value` (guillemets doubles)
 4. **Configuration circulaire** : La propriété `env` doit être définie dans les fichiers YAML, pas via `<global-property>`
 5. **Cache du runtime** : Après des modifications, nettoyer et recompiler : `mvn clean package`
+6. **Plugin lifecycle-mapping** : Utiliser la version 1.0.0, pas 4.5.2 (qui est réservée au mule-maven-plugin)
+7. **MCP Server** : Le serveur MCP expose les fonctionnalités via HTTP sur le port 8083 (configurable)
 
 ---
 
